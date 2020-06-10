@@ -16,7 +16,7 @@
   {
     "url" : "https://github.com/Wandalen/wFilesImap/issues"
   },
-  "dependencies" : { "wTools" : "" },
-  "devDependencies" : { "wTesting" : "", "eslint" : "7.1.0", "wfilesimap" : "file:." },
+  "dependencies" : { "wTools" : "alpha" },
+  "devDependencies" : { "eslint" : "7.1.0", "wfilesimap" : "file:.", "wTesting" : "alpha" },
   "keywords" : [ "wTools" ]
 }

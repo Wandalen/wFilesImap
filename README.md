@@ -9,7 +9,7 @@ npm install
 node sample/Sample.js
 ```
 
-## To add as submodule
+## To add
 ```
 npm add 'wfilesimap@alpha'
 ```

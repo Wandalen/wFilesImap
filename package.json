@@ -4,8 +4,8 @@
   "description" : "___",
   "author" : "Kostiantyn Wandalen <wanalen@01.school>",
   "license" : "MIT",
-  "main" : "proto/dwtools/___",
-  "files" : [ "proto/dwtools/___", "proto/dwtools/Tools.s" ],
+  "main" : "proto/wtools/___",
+  "files" : [ "proto/wtools/___", "proto/wtools/Tools.s" ],
   "scripts" : { "test" : "wtest .run proto", "docgen" : "wdocgen .build proto" },
   "repository" :
   {

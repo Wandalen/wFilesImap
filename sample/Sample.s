@@ -3,5 +3,5 @@ let _ = require( 'wfilesimap' );
 
 /**/
 
-___
+console.log( '___ not implemented ___' );
 

@@ -6,7 +6,7 @@
   "license" : "MIT",
   "main" : "proto/wtools/Tools.s",
   "files" : [ "proto/wtools/___", "proto/wtools/Tools.s" ],
-  "scripts" : { "test" : "wtest .run proto", "docgen" : "wdocgen .build proto" },
+  "scripts" : { "test" : "wtest .run proto rapidity:-3", "docgen" : "wdocgen .build proto" },
   "repository" :
   {
     "type" : "git",

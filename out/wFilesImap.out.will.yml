@@ -6,8 +6,8 @@ consistency:
     hash: bb0d95105c9c0b6cba3300199a2af459
     size: 1727
   ../.im.will.yml: &ref_1
-    hash: 499fae146c74c2875ca4501a454c0afd
-    size: 4918
+    hash: bc07783031840df6025d2a90cf1b9809
+    size: 5189
 module:
   wFilesImap.out:
     about:
@@ -168,24 +168,39 @@ module:
         path: 'npm:///wTools'
         autoExporting: 0
         enabled: 0
+        criterion:
+          external: 0
       wFiles:
         path: 'npm:///wFiles'
         autoExporting: 0
         enabled: 0
+        criterion:
+          external: 0
       wCensorBasic:
         path: 'npm:///wcensorbasic'
         autoExporting: 0
         enabled: 0
+        criterion:
+          external: 0
       wResolver:
         path: 'npm:///wresolver'
         autoExporting: 0
         enabled: 0
+        criterion:
+          external: 0
+      imap-simple:
+        path: 'npm:///imap-simple'
+        autoExporting: 0
+        enabled: 0
+        criterion:
+          external: 1
       eslint:
         path: 'npm:///eslint#7.1.0'
         autoExporting: 0
         enabled: 0
         criterion:
           debug: 1
+          external: 1
     reflector:
       reflect.proto.debug.raw:
         src:
@@ -906,24 +921,39 @@ module:
         path: 'npm:///wTools'
         autoExporting: 0
         enabled: 0
+        criterion:
+          external: 0
       wFiles:
         path: 'npm:///wFiles'
         autoExporting: 0
         enabled: 0
+        criterion:
+          external: 0
       wCensorBasic:
         path: 'npm:///wcensorbasic'
         autoExporting: 0
         enabled: 0
+        criterion:
+          external: 0
       wResolver:
         path: 'npm:///wresolver'
         autoExporting: 0
         enabled: 0
+        criterion:
+          external: 0
+      imap-simple:
+        path: 'npm:///imap-simple'
+        autoExporting: 0
+        enabled: 0
+        criterion:
+          external: 1
       eslint:
         path: 'npm:///eslint#7.1.0'
         autoExporting: 0
         enabled: 0
         criterion:
           debug: 1
+          external: 1
     reflector:
       reflect.proto.debug.raw:
         src:
@@ -1459,5 +1489,5 @@ module:
         hash: bb0d95105c9c0b6cba3300199a2af459
         size: 1727
       ../.im.will.yml:
-        hash: 499fae146c74c2875ca4501a454c0afd
-        size: 4918
+        hash: bc07783031840df6025d2a90cf1b9809
+        size: 5189

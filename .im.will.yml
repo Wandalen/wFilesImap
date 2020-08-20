@@ -5,6 +5,16 @@ submodule :
   wTools :
     path : npm:///wTools
     enabled : 0 # submodule
+  wFiles :
+    path : npm:///wFiles
+    enabled : 0 # submodule
+  wCensorBasic :
+    path : npm:///wcensorbasic
+    enabled : 0 # submodule
+  wResolver :
+    path : npm:///wresolver
+    enabled : 0 # submodule
+
   eslint :
     path : npm:///eslint#7.1.0
     enabled : 0 # submodule
@@ -46,7 +56,7 @@ path :
       content : prime
 
   entry.proto.no.tests :
-    path : proto/wtools/___
+    path : proto/wtools/amid/l4_files/entry/Imap.ss
     criterion :
       tests : 'no.tests'
   entry.proto.only.tests :
@@ -55,7 +65,7 @@ path :
       tests : 'only.tests'
 
   entry.out.raw.debug :
-    path : '{path::out.*=1}/source/wtools/___'
+    path : '{path::out.*=1}/source/wtools/amid/l4_files/entry/Imap.ss'
     criterion :
       debug : [ debug, release ]
       raw : raw
@@ -224,4 +234,3 @@ build :
       - build::raw.release
       - build::release
       - build::npm
-

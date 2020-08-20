@@ -1,7 +1,7 @@
 
 # module::FilesImap  [![status](https://github.com/Wandalen/wFilesImap/workflows/publish/badge.svg)](https://github.com/Wandalen/wFilesImap/actions?query=workflow%3Apublish) [![experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental)
 
-___
+Implements file provider to access file over IMAP protocol.
 
 ## Try out from the repository
 ```
@@ -15,7 +15,3 @@ node sample/Sample.s
 ```
 npm add 'wfilesimap@alpha'
 ```
-
-
-
-

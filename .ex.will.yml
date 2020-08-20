@@ -3,7 +3,7 @@
 about :
 
   name : 'wFilesImap'
-  description : '___'
+  description : 'Implements file provider to access file over IMAP protocol'
   version : '0.4.0'
   enabled : 1
   interpreters :
@@ -92,4 +92,3 @@ build :
       # - build::npm
       - build::proto.export
       # - build::doc.export
-

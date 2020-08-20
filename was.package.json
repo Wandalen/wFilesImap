@@ -1,6 +1,6 @@
 {
   "name" : "wfilesimap",
-  "version" : "0.2.29",
+  "version" : "0.2.30",
   "description" : "Implements file provider to access file over IMAP protocol",
   "author" : "Kostiantyn Wandalen <wanalen@01.school>",
   "license" : "MIT",

@@ -5,30 +5,36 @@ submodule :
   wTools :
     path : npm:///wTools
     enabled : 0 # submodule
-    external : 0
+    criterion :
+      external : 0
   wFiles :
     path : npm:///wFiles
     enabled : 0 # submodule
-    external : 0
+    criterion :
+      external : 0
   wCensorBasic :
     path : npm:///wcensorbasic
     enabled : 0 # submodule
-    external : 0
+    criterion :
+      external : 0
   wResolver :
     path : npm:///wresolver
     enabled : 0 # submodule
-    external : 0
+    criterion :
+      external : 0
 
   'imap-simple' :
     path : npm:///imap-simple
     enabled : 0 # submodule
-    external : 1
+    criterion :
+      external : 1
 
   eslint :
     path : npm:///eslint#7.1.0
     enabled : 0 # submodule
     criterion :
       debug : 1
+      external : 1
 
 path :
 

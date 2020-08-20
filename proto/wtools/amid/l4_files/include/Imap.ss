@@ -10,6 +10,8 @@ if( typeof module !== 'undefined' )
   _.include( 'wCensorBasic' );
   _.include( 'wResolver' );
 
+  require( '../l7_provider/Imap.ss' );
+
   module[ 'exports' ] = _;
 }
 

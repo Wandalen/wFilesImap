@@ -21,7 +21,8 @@
     "wTools" : "",
     "wFiles" : "",
     "wcensorbasic" : "",
-    "wresolver" : ""
+    "wresolver" : "",
+    "imap-simple" : ""
   },
   "devDependencies" : { "wTesting" : "", "eslint" : "7.1.0", "wfilesimap" : "file:." },
   "keywords" : [ "wTools" ]

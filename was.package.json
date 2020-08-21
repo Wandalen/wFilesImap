@@ -22,7 +22,7 @@
     "wFiles" : "",
     "wcensorbasic" : "",
     "wresolver" : "",
-    "imap-simple" : ""
+    "imap-simple" : "=5.0.0"
   },
   "devDependencies" : { "wTesting" : "", "eslint" : "7.1.0", "wfilesimap" : "file:." },
   "keywords" : [ "wTools" ]

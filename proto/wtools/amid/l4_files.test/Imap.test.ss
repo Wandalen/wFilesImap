@@ -59,6 +59,17 @@ function providerMake()
 // tests
 // --
 
+function login( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+  providers.effective.ready.then( () => providers.effective.unform() );
+  providers.effective.ready.then( () => test.is( true ) );
+  return providers.effective.ready;
+}
+
+//
+
 function dirRead( test )
 {
   let context = this;
@@ -79,6 +90,7 @@ function dirRead( test )
   /* */
 
   var got = providers.effective.dirRead( '/hr/1-new' );
+  logger.log( got );
   test.ge( got.length, 3 );
 
   /* */
@@ -90,6 +102,25 @@ function dirRead( test )
   var exp = null;
   var got = providers.effective.dirRead( '/file/does/not/exist' );
   test.identical( got, exp );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
+//
+
+function fileRead( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  /* */
+
+  var exp = [ 'attributes', 'parts', 'seqNo', 'header' ];
+  var got = providers.effective.fileRead( '/hr/@1' ); debugger;
+  test.identical( _.mapKeys( got ), exp );
 
   /* */
 
@@ -121,13 +152,16 @@ var Proto =
       login : 'about/email.login',
       password : 'about/email.password',
       hostUri : 'about/email.imap',
+      tls : 'about/email.tls',
     }
   },
 
   tests :
   {
 
+    login,
     dirRead,
+    fileRead,
 
   },
 

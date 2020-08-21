@@ -224,18 +224,90 @@ _.routineExtend( pathResolveSoftLinkAct, Parent.prototype.pathResolveSoftLinkAct
 function fileReadAct( o )
 {
   let self = this;
-  let con = new _.Consequence();
+  let path = self.path;
+  let ready = self.ready.split();
   let result = null;
 
   _.assert( arguments.length === 1, 'Expects single argument' );
   _.assertRoutineOptions( fileReadAct, o );
   _.assert( _.strIs( o.encoding ) );
+  o.advanced = _.routineOptions( null, o.advanced || Object.create( null ), fileReadAct.advanced );
 
-  _.assert( 0, 'not implemented' );
+  let filePath = path.unabsolute( o.filePath );
+  let dirPath = path.dir( filePath );
+  let name = path.name( o.filePath );
+
+  _.assert( _.strBegins( name, '@' ) );
+  name = _.strRemoveBegin( name, '@' );
+
+  ready.then( () => _read( o.filePath ) );
+  ready.then( () => result );
+
+  if( o.sync )
+  {
+    ready.deasync();
+    return ready.sync();
+  }
+
+  return ready;
+
+  /* */
+
+  function _read()
+  {
+    return self._connection.openBox( dirPath ).then( function ()
+    {
+      let searchCriteria = [ `${name}` ];
+      let bodies = [];
+      if( o.advanced.withHeader )
+      bodies.push( 'HEADER' );
+      if( o.advanced.withBody )
+      bodies.push( 'TEXT' );
+      if( o.advanced.withTail )
+      bodies.push( '' );
+      let fetchOptions =
+      {
+        bodies,
+        struct : !!o.advanced.structing,
+      };
+      return self._connection.search( searchCriteria, fetchOptions ).then( function( messages )
+      {
+        _.assert( messages.length === 1 );
+        result = messages[ 0 ];
+        resultHandle( result );
+      });
+    });
+  }
+
+  /* */
+
+  function resultHandle( result )
+  {
+    debugger;
+    if( o.advanced.withHeader )
+    {
+      result.header = Object.create( null );
+      let headers = result.parts.filter( ( e ) => e.which === 'HEADER' );
+      headers.forEach( ( header ) =>
+      {
+        _.mapExtend( result.header, header );
+      });
+    }
+  }
+
+  /* */
 
 }
 
 _.routineExtend( fileReadAct, Parent.prototype.fileReadAct );
+
+fileReadAct.advanced =
+{
+  withHeader : 1,
+  withBody : 1,
+  withTail : 1,
+  structing : 1,
+}
 
 //
 
@@ -257,7 +329,7 @@ function dirReadAct( o )
     return result;
   });
 
-  ready.then( () => mailsRead( o.filePath ) );
+  ready.then( () => _mailsRead( o.filePath ) );
   ready.then( () => result );
 
   if( o.sync )
@@ -268,7 +340,7 @@ function dirReadAct( o )
 
   return ready;
 
-  function mailsRead( filePath )
+  function _mailsRead( filePath )
   {
     if( result === null )
     return result;
@@ -276,7 +348,7 @@ function dirReadAct( o )
     return result;
 
     filePath = path.unabsolute( filePath );
-    return self._connection.openBox( filePath ).then(function ()
+    return self._connection.openBox( filePath ).then( function ()
     {
       let searchCriteria = [ 'ALL' ];
       let fetchOptions =
@@ -288,21 +360,15 @@ function dirReadAct( o )
       };
       return self._connection.search( searchCriteria, fetchOptions ).then( function( messages )
       {
-        debugger;
         messages.forEach( function( message, k )
         {
-          let mid = message.parts[ 0 ].body[ 'message-id' ][ 0 ];
-          _.assert( _.strIs( mid ) );
-          _.arrayAppendOnceStrictly( result, mid );
-          // debugger;
-        //   var all = _.find( item.parts, { 'which' : '' } )
-        //   var id = item.attributes.uid;
-        //   var idHeader = 'Imap-Id: ' + id + '\r\n';
-        //   simpleParser( idHeader+all.body, ( err, mail ) =>
-        //   {
-        //     console.log( mail.subject );
-        //     console.log( mail.html );
-        //   });
+          debugger;
+          // let mid = message.parts[ 0 ].body[ 'message-id' ][ 0 ];
+          let mid = message.attributes.uid;
+          _.assert( _.numberIs( mid ) );
+          debugger;
+          _.arrayAppendOnceStrictly( result, '@' + String( mid ) );
+          debugger;
         });
       });
     });
@@ -663,6 +729,7 @@ let Composes =
   hostUri : null,
   authTimeOut : 5000,
   tls : true,
+  // tls : false,
 
 }
 

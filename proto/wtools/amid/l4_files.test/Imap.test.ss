@@ -83,7 +83,7 @@ function dirRead( test )
 
   /* */
 
-  var exp = [ '1-new', '2-contacted', '2-men', '3-video', '5-interesting', '9-no' ];
+  var exp = [ '1-new', '2-contacted', '2-men', '3-video', '5-interesting', '9-no', '<1>' ];
   var got = providers.effective.dirRead( '/hr' );
   test.identical( got, exp );
 
@@ -119,8 +119,57 @@ function fileRead( test )
   /* */
 
   var exp = [ 'attributes', 'parts', 'seqNo', 'header' ];
-  var got = providers.effective.fileRead( '/hr/@1' ); debugger;
+  var got = providers.effective.fileRead( '/hr/<1>' );
   test.identical( _.mapKeys( got ), exp );
+
+  /* */
+
+  var exp = null;
+  var got = providers.effective.fileRead({ filePath : '/hr/<999>', throwing : 0 });
+  test.identical( got, exp );
+
+  /* */
+
+  var exp = null;
+  var got = providers.effective.fileRead({ filePath : '/hrx', throwing : 0 });
+  test.identical( got, exp );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
+//
+
+function statRead( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  /* */
+
+  var got = providers.effective.statRead( '/hr/<1>' );
+  test.identical( got.isFile(), true );
+  test.identical( got.isDir(), false );
+  test.identical( got.isDirectory(), false );
+
+  /* */
+
+  var got = providers.effective.statRead( '/hr/1-new' );
+  test.identical( got.isFile(), false );
+  test.identical( got.isDir(), true );
+  test.identical( got.isDirectory(), true );
+
+  /* */
+
+  var got = providers.effective.statRead({ filePath : '/hr/abc', throwing : 0 });
+  test.identical( got, null );
+
+  /* */
+
+  var got = providers.effective.statRead({ filePath : '/hr/abc/abc', throwing : 0 });
+  test.identical( got, null );
 
   /* */
 
@@ -162,6 +211,7 @@ var Proto =
     login,
     dirRead,
     fileRead,
+    statRead,
 
   },
 

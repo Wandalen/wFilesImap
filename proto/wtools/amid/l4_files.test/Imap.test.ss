@@ -173,6 +173,11 @@ function statRead( test )
 
   /* */
 
+  var got = providers.effective.statRead({ filePath : '/hr/<999>', throwing : 0 });
+  test.identical( got, null );
+
+  /* */
+
   providers.effective.ready.finally( () => providers.effective.unform() );
   return providers.effective.ready;
 }

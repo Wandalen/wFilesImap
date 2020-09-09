@@ -78,30 +78,41 @@ function dirRead( test )
 
   /* */
 
-  var exp = [ 'Drafts', 'hr', 'INBOX', 'Junk', 'reports', 'Sent', 'system', 'Templates', 'Trash' ];
+  test.case = 'read root directory';
+  providers.effective.dirMake( '/hr' );
   var got = providers.effective.dirRead( '/' );
-  test.identical( got, exp );
+  var exp = [ 'Drafts', 'INBOX', 'Junk', 'Sent', 'Trash', 'hr' ];
+  test.is( _.longHasAll( got, exp ) );
 
   /* */
 
-  var exp = [ '1-new', '2-contacted', '2-men', '3-video', '5-interesting', '9-no', '<1>' ];
+  test.case = 'read subdirectory';
+  providers.effective.dirMake( '/hr/1-new' );
+  providers.effective.dirMake( '/hr/2-contacted' );
+  providers.effective.fileWrite( '/hr/<$>', 'data' );
+  var exp = [ '1-new', '2-contacted', '<1>' ];
   var got = providers.effective.dirRead( '/hr' );
-  test.identical( got, exp );
+  test.is( _.longHasAll( got, exp ) );
 
   /* */
 
+  test.case = 'read nested directory';
+  providers.effective.fileWrite( '/hr/1-new/<$>', 'data' );
+  providers.effective.fileWrite( '/hr/1-new/<$>', 'data' );
+  providers.effective.fileWrite( '/hr/1-new/<$>', 'data' );
   var got = providers.effective.dirRead( '/hr/1-new' );
-  logger.log( got );
   test.ge( got.length, 3 );
 
   /* */
 
-  var exp = null;
+  test.case = 'read not existed directory';
   var got = providers.effective.dirRead( '/doesNotExists' );
+  var exp = null;
   test.identical( got, exp );
 
-  var exp = null;
+  test.case = 'read not existed nested directory';
   var got = providers.effective.dirRead( '/file/does/not/exist' );
+  var exp = null;
   test.identical( got, exp );
 
   /* */
@@ -119,20 +130,24 @@ function fileRead( test )
 
   /* */
 
-  var exp = [ 'attributes', 'parts', 'seqNo', 'header' ];
+  test.case = 'read existed file';
+  providers.effective.fileWrite( '/hr/<$>', 'data' );
   var got = providers.effective.fileRead( '/hr/<1>' );
+  var exp = [ 'attributes', 'parts', 'seqNo', 'header' ];
   test.identical( _.mapKeys( got ), exp );
 
   /* */
 
-  var exp = null;
+  test.case = 'read not existed file, throwing - 0';
   var got = providers.effective.fileRead({ filePath : '/hr/<999>', throwing : 0 });
+  var exp = null;
   test.identical( got, exp );
 
   /* */
 
-  var exp = null;
+  test.case = 'read not existed directory, throwing - 0';
   var got = providers.effective.fileRead({ filePath : '/hrx', throwing : 0 });
+  var exp = null;
   test.identical( got, exp );
 
   /* */
@@ -150,6 +165,8 @@ function statRead( test )
 
   /* */
 
+  test.case = 'stat of existed file';
+  providers.effective.fileWrite( '/hr/<$>', 'data' );
   var got = providers.effective.statRead( '/hr/<1>' );
   test.identical( got.isFile(), true );
   test.identical( got.isDir(), false );
@@ -157,6 +174,8 @@ function statRead( test )
 
   /* */
 
+  test.case = 'stat of existed nested directory';
+  providers.effective.dirMake( '/hr/1-new' );
   var got = providers.effective.statRead( '/hr/1-new' );
   test.identical( got.isFile(), false );
   test.identical( got.isDir(), true );
@@ -164,11 +183,13 @@ function statRead( test )
 
   /* */
 
+  test.case = 'stat of not existed nested directory';
   var got = providers.effective.statRead({ filePath : '/hr/abc', throwing : 0 });
   test.identical( got, null );
 
   /* */
 
+  test.case = 'stat of not existed nested directory - 2 levels';
   var got = providers.effective.statRead({ filePath : '/hr/abc/abc', throwing : 0 });
   test.identical( got, null );
 

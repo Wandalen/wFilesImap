@@ -337,6 +337,7 @@ function dirReadAct( o )
     return result;
 
     filePath = path.unabsolute( filePath );
+    filePath = filePath.split( '/' ).join( '.' );
     return self._connection.openBox( filePath ).then( function( extra ) /* xxx : need to close? */
     {
       let searchCriteria = [ 'ALL' ];
@@ -614,7 +615,8 @@ function fileWriteAct( o )
 
       if( o.writeMode === 'rewrite' )
       {
-        let mailbox = path.unabsolute( parsed.dirPath );
+        let dirPath = path.unabsolute( parsed.dirPath );
+        let mailbox = dirPath.split( '/' ).join( '.' );
         self._connection.append( o.data, { mailbox } )
         .then( ( etra ) =>
         {

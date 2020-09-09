@@ -431,7 +431,11 @@ function statReadAct( o )
     {
       let files = self.dirRead({ filePath : parsed.dirPath, throwing, sync });
       if( !_.longHas( files, parsed.fullName ) )
-      throw _.err( `File ${o.filePath} does not exist` );
+      {
+        if( o.throwing )
+        throw _.err( `File ${o.filePath} does not exist` );
+        return null;
+      }
       let advanced =
       {
         withHeader : 1,
@@ -450,8 +454,18 @@ function statReadAct( o )
       stat.isDirectory = returnTrue;
       stat.isDir = returnTrue;
       let ready = _.Consequence.From( _dirRead() );
+      ready.finally( ( err, arg ) =>
+      {
+        if( err )
+        {
+          if( o.throwing )
+          throw _.err( err );
+          _.errAttend( err );
+          return null;
+        }
+        return arg;
+      })
       return ready;
-      debugger;
     }
 
     return stat;
@@ -471,7 +485,6 @@ function statReadAct( o )
       {
         result.extra = extra;
         self._connection.closeBox( dirPath );
-        debugger;
         con.take( stat );
       })
       .catch( ( err ) =>
@@ -545,9 +558,9 @@ function fileExistsAct( o )
 
   _.assert( arguments.length === 1 );
   _.assert( self.path.isNormalized( o.filePath ) );
-  _.assert( 0, 'not implemented' );
 
-  return !!file;
+  let exists = self.statReadAct({ filePath : o.filePath, sync : 1, throwing : 0, resolvingSoftLink : 0 });
+  return !!exists;
 }
 
 _.routineExtend( fileExistsAct, Parent.prototype.fileExistsAct );

@@ -205,6 +205,67 @@ function fileExists( test )
   return providers.effective.ready;
 }
 
+//
+
+function fileWrite( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  /* */
+
+  test.case = 'write file in existed directory';
+  providers.effective.fileWrite( '/Drafts/<$>', 'data' );
+  var got = providers.effective.dirRead( '/Drafts' );
+  test.is( _.longHas( got, '<1>' ) );
+
+  test.case = 'write file in not existed directory';
+  providers.effective.fileWrite( '/user/<$>', 'data' );
+  var got = providers.effective.dirRead( '/Drafts' );
+  test.is( _.longHas( got, '<1>' ) );
+
+  test.case = 'wrong name of file';
+  test.shouldThrowErrorSync( () => providers.effective.fileWrite( '/INBOX/<2>', 'data' ) );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
+//
+
+function dirMake( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  /* */
+
+  test.case = 'create new directory';
+  providers.effective.dirMake( '/some' );
+  var got = providers.effective.dirRead( '/' );
+  test.is( _.longHas( got, 'some' ) );
+
+  test.case = 'try to recreate existed directory';
+  providers.effective.fileWrite( '/Drafts/<$>', 'data' );
+  providers.effective.dirMake( '/Drafts' );
+  var got = providers.effective.dirRead( '/Drafts' );
+  test.is( _.longHas( got, '<1>' ) );
+
+  test.case = 'create nested directory';
+  providers.effective.dirMake( '/new/some' );
+  var got = providers.effective.dirRead( '/' );
+  test.is( _.longHas( got, 'new' ) );
+  var got = providers.effective.dirRead( '/new' );
+  test.identical( got, [ 'some' ] );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
 // --
 // declare
 // --
@@ -241,6 +302,8 @@ var Proto =
     fileRead,
     statRead,
     fileExists,
+    fileWrite,
+    dirMake,
 
   },
 

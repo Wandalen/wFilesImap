@@ -1,4 +1,5 @@
-( function _Imap_test_ss_( ) {
+( function _Imap_test_ss_()
+{
 
 'use strict';
 
@@ -173,8 +174,30 @@ function statRead( test )
 
   /* */
 
-  var got = providers.effective.statRead({ filePath : '/hr/<999>', throwing : 0 });
-  test.identical( got, null );
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
+//
+
+function fileExists( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  /* */
+
+  test.case = 'check existed directory';
+  var got = providers.effective.fileExists( '/INBOX' );
+  test.identical( got, true );
+
+  test.case = 'check not existed directory';
+  var got = providers.effective.fileExists( '/notExistedDirectory' );
+  test.identical( got, false );
+
+  test.case = 'check not existed file';
+  var got = providers.effective.fileExists( '/INBOX/<999>' );
+  test.identical( got, false );
 
   /* */
 
@@ -217,6 +240,7 @@ var Proto =
     dirRead,
     fileRead,
     statRead,
+    fileExists,
 
   },
 

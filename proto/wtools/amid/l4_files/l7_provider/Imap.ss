@@ -479,7 +479,8 @@ function statReadAct( o )
     .give( function()
     {
       let con = this;
-      let dirPath = path.unabsolute( parsed.originalPath );
+      let dirPath = parsed.unabsolutePath.split( '/' ).join( '.' );
+
       self._connection.openBox( dirPath )
       .then( ( extra ) => /* xxx : need to close? */
       {
@@ -572,13 +573,64 @@ _.routineExtend( fileExistsAct, Parent.prototype.fileExistsAct );
 function fileWriteAct( o )
 {
   let self = this;
+  let path = self.path;
 
   _.assert( arguments.length === 1, 'Expects single argument' );
   _.assertRoutineOptions( fileWriteAct, o );
   _.assert( self.path.isNormalized( o.filePath ) );
   _.assert( self.WriteMode.indexOf( o.writeMode ) !== -1 );
 
-  _.assert( 0, 'not implemented' );
+  /* data conversion */
+
+  if( _.bufferTypedIs( o.data ) && !_.bufferBytesIs( o.data ) || _.bufferRawIs( o.data ) )
+  o.data = _.bufferNodeFrom( o.data );
+
+  _.assert( _.strIs( o.data ) || _.bufferNodeIs( o.data ) || _.bufferBytesIs( o.data ), 'Expects string or node buffer, but got', _.strType( o.data ) );
+
+  /* write */
+
+  let result = _fileWrite();
+
+  if( o.sync )
+  {
+    result.deasync();
+    return result.sync();
+  }
+
+  return result;
+
+  /* */
+
+  function _fileWrite()
+  {
+    return self.ready.split()
+    .give( function()
+    {
+      let con = this;
+      let parsed = self.pathParse( o.filePath );
+
+      if( parsed.fullName !== '<$>' )
+      return con.error( _.err( 'Cannot write file with defined filename. Please, use name <$> instead.' ) );
+
+      if( o.writeMode === 'rewrite' )
+      {
+        let mailbox = path.unabsolute( parsed.dirPath );
+        self._connection.append( o.data, { mailbox } )
+        .then( ( etra ) =>
+        {
+          con.take( null );
+        })
+        .catch( ( err ) =>
+        {
+          con.error( _.err( err ) );
+        })
+      }
+      else
+      {
+        con.error( _.err( `Not implemented write mode ${ o.writeMode }` ) );
+      }
+    });
+  }
 
 }
 
@@ -604,11 +656,68 @@ _.routineExtend( fileDeleteAct, Parent.prototype.fileDeleteAct );
 function dirMakeAct( o )
 {
   let self = this;
+  let path = self.path;
 
   _.assert( arguments.length === 1, 'Expects single argument' );
   _.assertRoutineOptions( dirMakeAct, o );
-  _.assert( 0, 'not implemented' );
+  _.assert( self.path.isNormalized( o.filePath ) );
 
+  let ready = _dirMake();
+
+  if( o.sync )
+  {
+    ready.deasync();
+    return ready.sync();
+  }
+
+  return ready;
+
+  /* */
+
+  function _dirMake()
+  {
+    let con = new _.Consequence();
+    let parsed = self.pathParse( o.filePath );
+
+    if( parsed.isTerminal )
+    return con.error( 'Path to directory should have not name of terminal file.' );
+
+    let dirPath = parsed.unabsolutePath.split( '/' ).join( '.' );
+
+    self._connection.addBox( dirPath )
+    .then( () => /* xxx : need to close? */
+    {
+      con.take( null );
+    })
+    .catch( ( err ) =>
+    {
+      con.error( _.err( err ) );
+    });
+
+    return con;
+  }
+
+  // function _dirMake()
+  // {
+  //   debugger;
+  //   return self.ready.split()
+  //   .give( function()
+  //   {
+  //     debugger;
+  //     let con = this;
+  //     let filePath = path.unabsolute( o.filePath );
+  //     self._connection.addBox( filePath )
+  //     .then( () => /* xxx : need to close? */
+  //     {
+  //       self._connection.closeBox( filePath );
+  //       con.take( null );
+  //     })
+  //     .catch( ( err ) =>
+  //     {
+  //       con.error( _.err( err ) );
+  //     });
+  //   });
+  // }
 }
 
 _.routineExtend( dirMakeAct, Parent.prototype.dirMakeAct );

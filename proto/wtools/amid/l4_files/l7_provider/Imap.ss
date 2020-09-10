@@ -566,7 +566,13 @@ function fileExistsAct( o )
   _.assert( arguments.length === 1 );
   _.assert( self.path.isNormalized( o.filePath ) );
 
-  let exists = self.statReadAct({ filePath : o.filePath, sync : 1, throwing : 0, resolvingSoftLink : 0 });
+  let exists = self.statReadAct
+  ({
+    filePath : o.filePath,
+    sync : 1,
+    throwing : 0,
+    resolvingSoftLink : 0,
+  });
   return !!exists;
 }
 
@@ -648,12 +654,92 @@ _.routineExtend( fileWriteAct, Parent.prototype.fileWriteAct );
 function fileDeleteAct( o )
 {
   let self = this;
+  let path = self.path;
+  let parsed = self.pathParse( o.filePath );
 
   _.assertRoutineOptions( fileDeleteAct, o );
   _.assert( arguments.length === 1, 'Expects single argument' );
-  _.assert( self.path.isNormalized( o.filePath ) );
-  _.assert( 0, 'not implemented' );
+  _.assert( path.isNormalized( o.filePath ) );
 
+  let result = _fileDelete();
+
+  if( o.sync )
+  {
+    result.deasync();
+    return result.sync();
+  }
+
+  return result;
+
+  /* */
+
+  function _fileDelete()
+  {
+    let con = new _.Consequence();
+    let stat = self.statReadAct
+    ({
+      filePath : o.filePath,
+      sync : 1,
+      throwing : 0,
+      resolvingSoftLink : 0
+    });
+    let mailbox = path.unabsolute( parsed.isTerminal ? parsed.dirPath : parsed.originalPath );
+    mailbox = mailbox.split( '/' ).join( '.' );
+
+    if( stat && stat.isDir() )
+    {
+      let deletedList = [ mailbox ];
+
+      /* Dmytro : server can't delete directories with subdirectories directly, paths list creates iterative */
+      let dirQueue = [ o.filePath ];
+      while( dirQueue.length > 0 )
+      {
+        let dirs = self.dirRead({ filePath : dirQueue[ 0 ], throwing : 0, sync : 1 });
+        dirs = dirs.filter( ( e ) => !_.strInsideOf( e, '<', '>' ) );
+        dirQueue.push( ... dirs.map( ( e ) => `${ dirQueue[ 0 ] }/${ e }` ) );
+
+        let mailboxPath = path.unabsolute( dirQueue[ 0 ] );
+        mailboxPath = mailboxPath.split( '/' ).join( '.' );
+        deletedList.push( ... dirs.map( ( e ) => `${ mailboxPath }.${ e }` ) );
+
+        dirQueue.shift();
+      }
+
+      let ready = new _.Consequence().take( null );
+      for( let i = deletedList.length - 1 ; i >= 0 ; i-- )
+      ready.then( () => self._connection.delBox( deletedList[ i ] ) );
+
+      con.take( ready );
+    }
+    else
+    {
+      let files = self.dirRead({ filePath : parsed.dirPath, sync : 1, throwing : 0 });
+
+      if( !_.longHas( files, parsed.fullName ) )
+      return con.error( _.err( `File ${ parsed.originalPath } does not exists.` ) );
+
+      self._connection.openBox( mailbox )
+      .then( () =>
+      {
+        self._connection.deleteMessage( parsed.stripName )
+        .then( () =>
+        {
+          self._connection.closeBox( mailbox );
+          con.take( null );
+        })
+        .catch( ( err ) =>
+        {
+          con.error( _.err( err ) );
+        })
+      })
+      .catch( ( err ) =>
+      {
+        con.error( _.err( err ) );
+      })
+    }
+
+    return con;
+  }
 }
 
 _.routineExtend( fileDeleteAct, Parent.prototype.fileDeleteAct );
@@ -703,28 +789,6 @@ function dirMakeAct( o )
 
     return con;
   }
-
-  // function _dirMake()
-  // {
-  //   debugger;
-  //   return self.ready.split()
-  //   .give( function()
-  //   {
-  //     debugger;
-  //     let con = this;
-  //     let filePath = path.unabsolute( o.filePath );
-  //     self._connection.addBox( filePath )
-  //     .then( () => /* xxx : need to close? */
-  //     {
-  //       self._connection.closeBox( filePath );
-  //       con.take( null );
-  //     })
-  //     .catch( ( err ) =>
-  //     {
-  //       con.error( _.err( err ) );
-  //     });
-  //   });
-  // }
 }
 
 _.routineExtend( dirMakeAct, Parent.prototype.dirMakeAct );
@@ -840,6 +904,7 @@ let Composes =
   authTimeOut : 5000,
   tls : true,
   // tls : false,
+  safe : 0,
 
 }
 

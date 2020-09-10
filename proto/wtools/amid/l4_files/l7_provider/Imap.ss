@@ -25,11 +25,11 @@ _.assert( !_.FileProvider.Imap );
 //
 
 /**
- @classdesc Imap files provider.
- @class wFileProviderImap
- @namespace wTools.FileProvider
- @module Tools/mid/Files
-*/
+ * @classdesc Imap files provider.
+ * @class wFileProviderImap
+ * @namespace wTools.FileProvider
+ * @module Tools/mid/Files
+ */
 
 let Parent = Partial;
 let Self = wFileProviderImap;
@@ -119,7 +119,7 @@ function unform()
  * @class wFileProviderImap
  * @namespace wTools.FileProvider
  * @module Tools/mid/Files
-*/
+ */
 
 function pathCurrentAct()
 {
@@ -800,13 +800,51 @@ _.routineExtend( dirMakeAct, Parent.prototype.dirMakeAct );
 function fileRenameAct( o )
 {
   let self = this;
+  let ready = new _.Consequence();
 
   _.assert( arguments.length === 1, 'Expects single argument' );
   _.assertRoutineOptions( fileRenameAct, arguments );
   _.assert( self.path.isNormalized( o.srcPath ) );
   _.assert( self.path.isNormalized( o.dstPath ) );
-  _.assert( 0, 'not implemented' );
+  // _.assert( 0, 'not implemented' );
 
+  let result = new _.Consequence().take( null );
+  result.then( () => _fileRename() );
+
+  if( o.sync )
+  {
+    result.deasync();
+    return result.sync();
+  }
+
+  return result;
+
+  /* */
+
+  function _fileRename()
+  {
+    let srcParsed = self.pathParse( o.srcPath );
+    if( srcParsed.isTerminal )
+    return ready.error( _.err( '{-o.srcPath-} should be path to directory.' ) );
+    let dstParsed = self.pathParse( o.dstPath );
+    if( dstParsed.isTerminal )
+    return ready.error( _.err( '{-o.dstPath-} should be path to directory.' ) );
+
+    let srcPath = srcParsed.unabsolutePath.split( '/' ).join( '.' );
+    let dstPath = dstParsed.unabsolutePath.split( '/' ).join( '.' );
+
+    self._connection.imap.renameBox( srcPath, dstPath, handleErr );
+
+    return ready;
+  }
+
+  function handleErr( err )
+  {
+    if( err )
+    ready.error( _.err( err ) );
+    else
+    ready.take( true );
+  }
 }
 
 _.routineExtend( fileRenameAct, Parent.prototype.fileRenameAct );

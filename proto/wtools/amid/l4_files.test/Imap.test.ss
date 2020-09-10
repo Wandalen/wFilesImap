@@ -79,28 +79,28 @@ function dirRead( test )
   /* */
 
   test.case = 'read root directory';
-  providers.effective.dirMake( '/hr' );
+  providers.effective.dirMake( '/read' );
   var got = providers.effective.dirRead( '/' );
-  var exp = [ 'Drafts', 'INBOX', 'Junk', 'Sent', 'Trash', 'hr' ];
+  var exp = [ 'Drafts', 'INBOX', 'Junk', 'Sent', 'Trash', 'read' ];
   test.is( _.longHasAll( got, exp ) );
 
   /* */
 
   test.case = 'read subdirectory';
-  providers.effective.dirMake( '/hr/1-new' );
-  providers.effective.dirMake( '/hr/2-contacted' );
-  providers.effective.fileWrite( '/hr/<$>', 'data' );
+  providers.effective.dirMake( '/read/1-new' );
+  providers.effective.dirMake( '/read/2-contacted' );
+  providers.effective.fileWrite( '/read/<$>', 'data' );
   var exp = [ '1-new', '2-contacted', '<1>' ];
-  var got = providers.effective.dirRead( '/hr' );
+  var got = providers.effective.dirRead( '/read' );
   test.is( _.longHasAll( got, exp ) );
 
   /* */
 
   test.case = 'read nested directory';
-  providers.effective.fileWrite( '/hr/1-new/<$>', 'data' );
-  providers.effective.fileWrite( '/hr/1-new/<$>', 'data' );
-  providers.effective.fileWrite( '/hr/1-new/<$>', 'data' );
-  var got = providers.effective.dirRead( '/hr/1-new' );
+  providers.effective.fileWrite( '/read/1-new/<$>', 'data' );
+  providers.effective.fileWrite( '/read/1-new/<$>', 'data' );
+  providers.effective.fileWrite( '/read/1-new/<$>', 'data' );
+  var got = providers.effective.dirRead( '/read/1-new' );
   test.ge( got.length, 3 );
 
   /* */
@@ -114,6 +114,10 @@ function dirRead( test )
   var got = providers.effective.dirRead( '/file/does/not/exist' );
   var exp = null;
   test.identical( got, exp );
+
+  /* */
+
+  providers.effective.fileDelete( '/read' );
 
   /* */
 
@@ -131,15 +135,13 @@ function fileRead( test )
   /* */
 
   test.case = 'read existed file';
-  providers.effective.fileWrite( '/hr/<$>', 'data' );
-  var got = providers.effective.fileRead( '/hr/<1>' );
+  providers.effective.fileWrite( '/read/<$>', 'data' );
+  var got = providers.effective.fileRead( '/read/<1>' );
   var exp = [ 'attributes', 'parts', 'seqNo', 'header' ];
   test.identical( _.mapKeys( got ), exp );
 
-  /* */
-
   test.case = 'read not existed file, throwing - 0';
-  var got = providers.effective.fileRead({ filePath : '/hr/<999>', throwing : 0 });
+  var got = providers.effective.fileRead({ filePath : '/read/<999>', throwing : 0 });
   var exp = null;
   test.identical( got, exp );
 
@@ -149,6 +151,10 @@ function fileRead( test )
   var got = providers.effective.fileRead({ filePath : '/hrx', throwing : 0 });
   var exp = null;
   test.identical( got, exp );
+
+  /* */
+
+  providers.effective.fileDelete( '/read' );
 
   /* */
 
@@ -166,17 +172,15 @@ function statRead( test )
   /* */
 
   test.case = 'stat of existed file';
-  providers.effective.fileWrite( '/hr/<$>', 'data' );
-  var got = providers.effective.statRead( '/hr/<1>' );
+  providers.effective.fileWrite( '/stat/<$>', 'data' );
+  var got = providers.effective.statRead( '/stat/<1>' );
   test.identical( got.isFile(), true );
   test.identical( got.isDir(), false );
   test.identical( got.isDirectory(), false );
 
-  /* */
-
   test.case = 'stat of existed nested directory';
-  providers.effective.dirMake( '/hr/1-new' );
-  var got = providers.effective.statRead( '/hr/1-new' );
+  providers.effective.dirMake( '/stat/1-new' );
+  var got = providers.effective.statRead( '/stat/1-new' );
   test.identical( got.isFile(), false );
   test.identical( got.isDir(), true );
   test.identical( got.isDirectory(), true );
@@ -184,12 +188,16 @@ function statRead( test )
   /* */
 
   test.case = 'stat of not existed nested directory';
-  var got = providers.effective.statRead({ filePath : '/hr/abc', throwing : 0 });
+  var got = providers.effective.statRead({ filePath : '/stat/abc', throwing : 0 });
   test.identical( got, null );
 
   test.case = 'stat of not existed nested directory - 2 levels';
-  var got = providers.effective.statRead({ filePath : '/hr/abc/abc', throwing : 0 });
+  var got = providers.effective.statRead({ filePath : '/stat/abc/abc', throwing : 0 });
   test.identical( got, null );
+
+  /* */
+
+  providers.effective.fileDelete( '/stat' );
 
   /* */
 
@@ -213,6 +221,12 @@ function fileExists( test )
   test.case = 'check not existed directory';
   var got = providers.effective.fileExists( '/notExistedDirectory' );
   test.identical( got, false );
+
+  test.case = 'check existed file';
+  providers.effective.fileWrite( '/exists/<$>', 'data' );
+  var got = providers.effective.fileExists( '/exists/<1>' );
+  test.identical( got, true );
+  providers.effective.fileDelete( '/exists' )
 
   test.case = 'check not existed file';
   var got = providers.effective.fileExists( '/INBOX/<999>' );
@@ -239,9 +253,12 @@ function fileWrite( test )
   test.is( _.longHas( got, '<1>' ) );
 
   test.case = 'write file in not existed directory';
-  providers.effective.fileWrite( '/user/<$>', 'data' );
-  var got = providers.effective.dirRead( '/Drafts' );
+  providers.effective.fileWrite( '/write/<$>', 'data' );
+  var got = providers.effective.dirRead( '/write' );
   test.is( _.longHas( got, '<1>' ) );
+  providers.effective.fileDelete( '/write' );
+
+  /* */
 
   test.case = 'wrong name of file';
   test.shouldThrowErrorSync( () => providers.effective.fileWrite( '/INBOX/<2>', 'data' ) );
@@ -417,22 +434,25 @@ function dirMake( test )
   /* */
 
   test.case = 'create new directory';
-  providers.effective.dirMake( '/some' );
+  providers.effective.dirMake( '/make' );
   var got = providers.effective.dirRead( '/' );
-  test.is( _.longHas( got, 'some' ) );
+  test.is( _.longHas( got, 'make' ) );
+  providers.effective.fileDelete( '/make' );
 
   test.case = 'try to recreate existed directory';
-  providers.effective.fileWrite( '/Drafts/<$>', 'data' );
-  providers.effective.dirMake( '/Drafts' );
-  var got = providers.effective.dirRead( '/Drafts' );
+  providers.effective.fileWrite( '/make/<$>', 'data' );
+  providers.effective.dirMake( '/make' );
+  var got = providers.effective.dirRead( '/make' );
   test.is( _.longHas( got, '<1>' ) );
+  providers.effective.fileDelete( '/make' );
 
   test.case = 'create nested directory';
-  providers.effective.dirMake( '/new/some' );
+  providers.effective.dirMake( '/make/some' );
   var got = providers.effective.dirRead( '/' );
-  test.is( _.longHas( got, 'new' ) );
-  var got = providers.effective.dirRead( '/new' );
+  test.is( _.longHas( got, 'make' ) );
+  var got = providers.effective.dirRead( '/make' );
   test.identical( got, [ 'some' ] );
+  providers.effective.fileDelete( '/make' );
 
   /* */
 

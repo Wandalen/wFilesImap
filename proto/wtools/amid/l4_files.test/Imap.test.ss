@@ -348,6 +348,67 @@ function fileDelete( test )
 
 //
 
+function filesDelete( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  if( providers.effective.fileExists( '/delete' ) )
+  providers.effective.fileDelete( '/delete' );
+
+  /* */
+
+  test.case = 'delete a few directories in root level';
+  providers.effective.dirMake( '/delete1' );
+  providers.effective.dirMake( '/delete2' );
+  providers.effective.dirMake( '/delete3' );
+  var got = providers.effective.dirRead( '/' );
+  test.is( _.longHasAll( got, [ 'delete1', 'delete2', 'delete3' ] ) );
+
+  providers.effective.filesDelete({ filePath : [ '/delete1', '/delete3' ] });
+  var got = providers.effective.dirRead( '/' );
+  test.is( _.longHas( got, 'delete2' ) );
+  providers.effective.fileDelete( '/delete2' );
+
+  /* */
+
+  test.case = 'delete a few files in root level directory';
+  providers.effective.fileWrite( '/delete/<$>', 'data' );
+  providers.effective.fileWrite( '/delete/<$>', 'data' );
+  providers.effective.fileWrite( '/delete/<$>', 'data' );
+  var got = providers.effective.dirRead( '/delete' );
+  test.identical( got, [ '<1>', '<2>', '<3>' ] );
+
+  providers.effective.filesDelete({ filePath : [ '/delete/<1>', '/delete/<3>' ] });
+  var got = providers.effective.dirRead( '/delete' );
+  test.identical( got, [ '<2>' ] );
+  providers.effective.fileDelete( '/delete' );
+
+  /* */
+
+  test.case = 'delete a few directories in root level directory';
+  providers.effective.fileWrite( '/delete/1/a/<$>', 'data' );
+  providers.effective.fileWrite( '/delete/2/a/<$>', 'data' );
+  providers.effective.dirMake( '/delete/3' );
+  providers.effective.dirMake( '/delete2' );
+  var got = providers.effective.dirRead( '/delete' );
+  test.identical( got, [ '1', '2', '3' ] );
+
+  providers.effective.filesDelete({ filePath : [ '/delete/1', '/delete/3', '/delete2' ] });
+  var got = providers.effective.dirRead( '/delete' );
+  test.identical( got, [ '2' ] );
+  var got = providers.effective.dirRead( '/' );
+  test.isNot( _.longHas( got, 'delete2' ) );
+  providers.effective.fileDelete( '/delete' );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
+//
+
 function dirMake( test )
 {
   let context = this;
@@ -417,6 +478,7 @@ var Proto =
     fileExists,
     fileWrite,
     fileDelete,
+    filesDelete,
     dirMake,
 
   },

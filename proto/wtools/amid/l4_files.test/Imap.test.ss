@@ -187,8 +187,6 @@ function statRead( test )
   var got = providers.effective.statRead({ filePath : '/hr/abc', throwing : 0 });
   test.identical( got, null );
 
-  /* */
-
   test.case = 'stat of not existed nested directory - 2 levels';
   var got = providers.effective.statRead({ filePath : '/hr/abc/abc', throwing : 0 });
   test.identical( got, null );
@@ -247,6 +245,100 @@ function fileWrite( test )
 
   test.case = 'wrong name of file';
   test.shouldThrowErrorSync( () => providers.effective.fileWrite( '/INBOX/<2>', 'data' ) );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
+//
+
+function fileDelete( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  if( providers.effective.fileExists( '/delete' ) )
+  providers.effective.fileDelete( '/delete' );
+
+  /* */
+
+  test.case = 'delete single file';
+  providers.effective.fileWrite( '/delete/<$>', 'data' );
+  var got = providers.effective.dirRead( '/delete' );
+  test.is( _.longHas( got, '<1>' ) );
+
+  providers.effective.fileDelete( '/delete/<1>' );
+  var got = providers.effective.dirRead( '/delete' );
+  test.isNot( _.longHas( got, '<1>' ) );
+
+  /* */
+
+  test.case = 'delete single directory in root level';
+  providers.effective.dirMake( '/delete' );
+  var got = providers.effective.dirRead( '/delete' );
+  test.identical( got, [] );
+
+  providers.effective.fileDelete( '/delete' );
+  var got = providers.effective.dirRead( '/' );
+  test.isNot( _.longHas( got, 'delete' ) );
+
+  /* */
+
+  test.case = 'delete single directory in root level, directory with file';
+  providers.effective.fileWrite( '/delete/<$>', 'data' );
+  var got = providers.effective.dirRead( '/delete' );
+  test.identical( got, [ '<1>' ] );
+
+  providers.effective.fileDelete( '/delete' );
+  var got = providers.effective.dirRead( '/' );
+  test.isNot( _.longHas( got, 'delete' ) );
+
+  /* */
+
+  test.case = 'delete single nested directory';
+  providers.effective.dirMake( '/delete/new' );
+  var got = providers.effective.dirRead( '/delete' );
+  test.identical( got, [ 'new' ] );
+
+  providers.effective.fileDelete( '/delete/new' );
+  var got = providers.effective.dirRead( '/delete' );
+  test.identical( got, [] );
+
+  /* */
+
+  test.case = 'delete directory with nested directories';
+  providers.effective.dirMake( '/delete/new/1/1' );
+  providers.effective.dirMake( '/delete/new/2' );
+  var got = providers.effective.dirRead( '/delete/new' );
+  test.identical( got, [ '1', '2' ] );
+
+  providers.effective.fileDelete( '/delete/new' );
+  var got = providers.effective.dirRead( '/delete' );
+  test.identical( got, [] );
+
+  /* */
+
+  test.case = 'delete directory with nested directories and files';
+  providers.effective.fileWrite( '/delete/<$>', 'data' );
+  providers.effective.fileWrite( '/delete/new/1/1/<$>', 'data' );
+  providers.effective.fileWrite( '/delete/new/<$>', 'data' );
+  providers.effective.dirMake( '/delete/new/2' );
+  var got = providers.effective.dirRead( '/delete/new' );
+  test.identical( got, [ '1', '2', '<1>' ] );
+
+  providers.effective.fileDelete( '/delete' );
+  var got = providers.effective.dirRead( '/' );
+  test.isNot( _.longHas( got, 'delete' ) );
+
+  /* */
+
+  test.case = 'wrong name of file';
+  test.shouldThrowErrorSync( () => providers.effective.fileDelete( '/INBOX/<999>' ) );
+
+  test.case = 'wrong name of directory';
+  test.shouldThrowErrorSync( () => providers.effective.fileDelete( '/unknown' ) );
 
   /* */
 
@@ -324,6 +416,7 @@ var Proto =
     statRead,
     fileExists,
     fileWrite,
+    fileDelete,
     dirMake,
 
   },

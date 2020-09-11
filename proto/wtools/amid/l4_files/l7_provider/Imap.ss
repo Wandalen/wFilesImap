@@ -924,8 +924,13 @@ function areHardLinkedAct( o )
 {
   let self = this;
 
-  _.assert( 0, 'not implemented' );
+  _.assertRoutineOptions( areHardLinkedAct, arguments );
+  _.assert( o.filePath.length === 2, 'Expects exactly two arguments' );
+  _.assert( self.path.isNormalized( o.filePath[ 0 ] ) );
+  _.assert( self.path.isNormalized( o.filePath[ 1 ] ) );
 
+  if( o.filePath[ 0 ] === o.filePath[ 1 ] )
+  return true;
   return false;
 }
 

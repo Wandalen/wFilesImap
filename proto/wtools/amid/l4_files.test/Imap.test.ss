@@ -476,7 +476,6 @@ function fileRename( test )
   let context = this;
   let providers = context.providerMake();
 
-  debugger;
   if( providers.effective.fileExists( '/rename' ) )
   providers.effective.fileDelete( '/rename' );
 
@@ -519,6 +518,20 @@ function fileRename( test )
   var got = providers.effective.dirRead( '/rename/dst' );
   test.identical( got, [ '<1>', 'some' ] );
   providers.effective.fileDelete( '/rename' );
+
+  /* */
+
+  if( Config.debug )
+  {
+    test.case = 'srcPath has terminal filename';
+    test.shouldThrowErrorSync( () => providers.effective.fileRename( '/rename/dst', '/rename/<1>' ) );
+
+    test.case = 'dstPath has terminal filename';
+    test.shouldThrowErrorSync( () => providers.effective.fileRename( '/rename/<1>', '/rename/src' ) );
+
+    test.case = 'rename builtin directory';
+    test.shouldThrowErrorSync( () => providers.effective.fileRename( '/rename', '/INBOX' ) );
+  }
 
   /* */
 

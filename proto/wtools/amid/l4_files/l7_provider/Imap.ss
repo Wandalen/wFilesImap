@@ -688,6 +688,9 @@ function fileDeleteAct( o )
 
     if( stat && stat.isDir() )
     {
+      if( _.longHas( [ '.', 'Drafts', 'INBOX', 'Junk', 'Sent', 'Trash' ], mailbox ) )
+      throw _.err( 'Unable to delete builtin directory.' );
+
       let deletedList = [ mailbox ];
 
       /* Dmytro : server can't delete directories with subdirectories directly, paths list creates iterative */
@@ -806,7 +809,6 @@ function fileRenameAct( o )
   _.assertRoutineOptions( fileRenameAct, arguments );
   _.assert( self.path.isNormalized( o.srcPath ) );
   _.assert( self.path.isNormalized( o.dstPath ) );
-  // _.assert( 0, 'not implemented' );
 
   let result = new _.Consequence().take( null );
   result.then( () => _fileRename() );
@@ -826,6 +828,8 @@ function fileRenameAct( o )
     let srcParsed = self.pathParse( o.srcPath );
     if( srcParsed.isTerminal )
     return ready.error( _.err( '{-o.srcPath-} should be path to directory.' ) );
+    if( _.longHas( [ '.', 'Drafts', 'INBOX', 'Junk', 'Sent', 'Trash' ], srcParsed.unabsolutePath ) )
+    return con.error( _.err( 'Unable to rename builtin directory.' ) );
     let dstParsed = self.pathParse( o.dstPath );
     if( dstParsed.isTerminal )
     return ready.error( _.err( '{-o.dstPath-} should be path to directory.' ) );

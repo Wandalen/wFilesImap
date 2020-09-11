@@ -260,8 +260,11 @@ function fileWrite( test )
 
   /* */
 
-  test.case = 'wrong name of file';
-  test.shouldThrowErrorSync( () => providers.effective.fileWrite( '/INBOX/<2>', 'data' ) );
+  if( Config.debug )
+  {
+    test.case = 'wrong name of file';
+    test.shouldThrowErrorSync( () => providers.effective.fileWrite( '/INBOX/<2>', 'data' ) );
+  }
 
   /* */
 
@@ -351,11 +354,17 @@ function fileDelete( test )
 
   /* */
 
-  test.case = 'wrong name of file';
-  test.shouldThrowErrorSync( () => providers.effective.fileDelete( '/INBOX/<999>' ) );
+  if( Config.debug )
+  {
+    test.case = 'wrong name of file';
+    test.shouldThrowErrorSync( () => providers.effective.fileDelete( '/INBOX/<999>' ) );
 
-  test.case = 'wrong name of directory';
-  test.shouldThrowErrorSync( () => providers.effective.fileDelete( '/unknown' ) );
+    test.case = 'wrong name of directory';
+    test.shouldThrowErrorSync( () => providers.effective.fileDelete( '/unknown' ) );
+
+    test.case = 'delete builtin directory';
+    test.shouldThrowErrorSync( () => providers.effective.fileDelete( '/INBOX' ) );
+  }
 
   /* */
 
@@ -460,6 +469,63 @@ function dirMake( test )
   return providers.effective.ready;
 }
 
+//
+
+function fileRename( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  debugger;
+  if( providers.effective.fileExists( '/rename' ) )
+  providers.effective.fileDelete( '/rename' );
+
+  /* */
+
+  test.case = 'rename directory in root level';
+  providers.effective.dirMake( '/toRename' );
+  var got = providers.effective.dirRead( '/' );
+  test.is( _.longHas( got, 'toRename' ) );
+
+  providers.effective.fileRename( '/rename', '/toRename' );
+  var got = providers.effective.dirRead( '/' );
+  test.is( _.longHas( got, 'rename' ) );
+  test.isNot( _.longHas( got, 'toRename' ) );
+  providers.effective.fileDelete( '/rename' );
+
+  /* */
+
+  test.case = 'rename nested directory';
+  providers.effective.dirMake( '/rename/toRename' );
+  var got = providers.effective.dirRead( '/rename' );
+  test.identical( got, [ 'toRename' ] );
+
+  providers.effective.fileRename( '/rename/dst', '/rename/toRename' );
+  var got = providers.effective.dirRead( '/rename' );
+  test.identical( got, [ 'dst' ] );
+  providers.effective.fileDelete( '/rename' );
+
+  /* */
+
+  test.case = 'rename directory with subdirectory and file';
+  providers.effective.dirMake( '/rename/toRename/some' );
+  providers.effective.fileWrite( '/rename/toRename/<$>', 'data' );
+  var got = providers.effective.dirRead( '/rename' );
+  test.identical( got, [ 'toRename' ] );
+
+  providers.effective.fileRename( '/rename/dst', '/rename/toRename' );
+  var got = providers.effective.dirRead( '/rename' );
+  test.identical( got, [ 'dst' ] );
+  var got = providers.effective.dirRead( '/rename/dst' );
+  test.identical( got, [ '<1>', 'some' ] );
+  providers.effective.fileDelete( '/rename' );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
 // --
 // declare
 // --
@@ -500,6 +566,7 @@ var Proto =
     fileDelete,
     filesDelete,
     dirMake,
+    fileRename,
 
   },
 

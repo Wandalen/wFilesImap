@@ -592,6 +592,7 @@ function fileWriteAct( o )
   _.assertRoutineOptions( fileWriteAct, o );
   _.assert( self.path.isNormalized( o.filePath ) );
   _.assert( self.WriteMode.indexOf( o.writeMode ) !== -1 );
+  o.advanced = _.routineOptions( null, o.advanced || Object.create( null ), fileReadAct.advanced );
 
   /* data conversion */
 
@@ -629,7 +630,13 @@ function fileWriteAct( o )
       {
         let dirPath = path.unabsolute( parsed.dirPath );
         let mailbox = dirPath.split( '/' ).join( '.' );
-        self._connection.append( o.data, { mailbox } )
+
+        let o2 = Object.create( null );
+        o2.mailbox = mailbox;
+        if( o.advanced.flag !== null )
+        o2.flag = o.advanced.flag;
+
+        self._connection.append( o.data, o2 )
         .then( ( etra ) =>
         {
           con.take( null );
@@ -647,6 +654,11 @@ function fileWriteAct( o )
   }
 
 }
+
+fileWriteAct.advanced =
+{
+  flag : null,
+};
 
 _.routineExtend( fileWriteAct, Parent.prototype.fileWriteAct );
 

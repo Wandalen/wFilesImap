@@ -603,6 +603,7 @@ function fileCopy( test )
 
   /* */
 
+  debugger;
   test.case = 'copy file into empty directory';
   providers.effective.dirMake( '/dst' );
   var got = providers.effective.dirRead( '/dst' );

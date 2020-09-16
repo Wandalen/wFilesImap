@@ -592,6 +592,66 @@ function areHardLinked( test )
   return providers.effective.ready;
 }
 
+//
+
+function fileCopy( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  providers.effective.fileWrite( '/src/<$>', 'data' );
+
+  /* */
+
+  test.case = 'copy file into empty directory';
+  providers.effective.dirMake( '/dst' );
+  var got = providers.effective.dirRead( '/dst' );
+  test.identical( got, [] );
+
+  providers.effective.fileCopy( '/dst/<$>', '/src/<1>' );
+  var got = providers.effective.dirRead( '/dst' );
+  test.identical( got, [ '<1>' ] );
+  providers.effective.fileDelete( '/dst' );
+
+  /* */
+
+  test.case = 'copy file into directory with files';
+  providers.effective.fileWrite( '/dst/<$>', 'data' );
+  var got = providers.effective.dirRead( '/dst' );
+  test.identical( got, [ '<1>' ] );
+
+  providers.effective.fileCopy( '/dst/<$>', '/src/<1>' );
+  var got = providers.effective.dirRead( '/dst' );
+  test.identical( got, [ '<1>', '<2>' ] );
+  providers.effective.fileDelete( '/dst' );
+
+  /* */
+
+  test.case = 'copy file into not existed directory, makingDirectory - 1';
+  var got = providers.effective.dirRead( '/' );
+  test.isNot( _.longHas( got, 'dst' ) );
+
+  providers.effective.fileCopy({ dstPath : '/dst/<$>', srcPath : '/src/<1>', makingDirectory : 1 });
+  var got = providers.effective.dirRead( '/dst' );
+  test.identical( got, [ '<1>' ] );
+  providers.effective.fileDelete( '/dst' );
+
+  /* */
+
+  test.case = 'src file does not exist, should throw error';
+  test.shouldThrowErrorSync( () => providers.effective.fileCopy( '/dst/<$>', '/src/<999>' ) );
+
+  test.case = 'copy file into not existed directory, makingDirectory - 0, should throw error';
+  test.shouldThrowErrorSync( () => providers.effective.fileCopy( '/dst/<$>', '/src/<1>' ) );
+
+  /* */
+
+  providers.effective.fileDelete( '/src' );
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
 // --
 // declare
 // --
@@ -635,6 +695,7 @@ var Proto =
     dirMake,
 
     fileRename,
+    fileCopy,
 
     areHardLinked,
 

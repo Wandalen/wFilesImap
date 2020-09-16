@@ -436,8 +436,9 @@ function statReadAct( o )
     if( parsed.isTerminal )
     {
       let files = self.dirRead({ filePath : parsed.dirPath, throwing, sync });
-      if( !_.longHas( files, parsed.fullName ) )
+      if( files === null || !_.longHas( files, parsed.fullName ) )
       {
+        debugger;
         if( o.throwing )
         throw _.err( `File ${o.filePath} does not exist` );
         return null;
@@ -858,13 +859,72 @@ _.routineExtend( fileRenameAct, Parent.prototype.fileRenameAct );
 function fileCopyAct( o )
 {
   let self = this;
-  let srcFile;
+  let path = self.path;
+  let ready = new _.Consequence();
 
   _.assert( arguments.length === 1, 'Expects single argument' );
   _.assertRoutineOptions( fileCopyAct, arguments );
-  _.assert( self.path.isNormalized( o.srcPath ) );
-  _.assert( self.path.isNormalized( o.dstPath ) );
-  _.assert( 0, 'not implemented' );
+  _.assert( path.isNormalized( o.srcPath ) );
+  _.assert( path.isNormalized( o.dstPath ) );
+
+  let srcParsed = self.pathParse( o.srcPath );
+  let dstParsed = self.pathParse( o.dstPath );
+
+  let result = new _.Consequence().take( null );
+  result.then( () => _fileCopy() );
+
+  if( o.sync )
+  {
+    result.deasync();
+    return result.sync();
+  }
+
+  return result;
+
+  /* */
+
+  function _fileCopy()
+  {
+
+    if( !srcParsed.isTerminal )
+    return ready.error( _.err( '{-o.srcPath-} should be path to terminal file.' ) );
+
+    if( dstParsed.fullName !== '<$>' )
+    return ready.error( _.err( '{-o.dstPath-} should be path to file with name <$>.' ) );
+
+    let srcPath = path.unabsolute( srcParsed.dirPath );
+    srcPath = srcPath.split( '/' ).join( '.' );
+    let dstPath = path.unabsolute( dstParsed.dirPath );
+    dstPath = dstPath.split( '/' ).join( '.' );
+    let msgId = _.arrayAs( srcParsed.stripName );
+
+    self._connection.openBox( srcPath )
+    .then( () =>
+    {
+      self._connection.imap.copy( msgId, dstPath, handle );
+    })
+
+    ready.finally( ( err, arg ) =>
+    {
+      if( err )
+      throw _.err( err );
+
+      let files = self.dirReadAct({ filePath : dstParsed.dirPath, sync : 1 });
+      o.context.options.dstPath = path.join( dstParsed.dirPath, files[ files.length - 1 ] );
+      self._connection.closeBox( srcPath );
+      return arg;
+    });
+
+    return ready;
+  }
+
+  function handle( err )
+  {
+    if( err )
+    ready.error( _.err( err ) );
+    else
+    ready.take( true );
+  }
 
 }
 

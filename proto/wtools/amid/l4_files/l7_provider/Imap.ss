@@ -1038,6 +1038,7 @@ let Accessors =
 let Statics =
 {
   Path : _.uri.CloneExtending({ fileProvider : Self }),
+  SupportsLinks : 0,
 }
 
 // --

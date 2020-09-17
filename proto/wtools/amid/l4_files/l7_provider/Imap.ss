@@ -459,7 +459,7 @@ function statReadAct( o )
       {
         withHeader : 1,
         withBody : 0,
-        withTail : 0,
+        withTail : 1,
         structing : 0,
       }
       let o2 = _.mapSupplement( { filePath : o.filePath, advanced, throwing, sync, encoding : 'map' }, self.fileReadAct.defaults );
@@ -467,6 +467,7 @@ function statReadAct( o )
       stat = statMake();
       stat.isFile = returnTrue;
       stat.atime = read.attributes.date;
+      debugger;
       stat.size = read.parts[ read.parts.length - 1 ].size >= 0 ? read.parts[ read.parts.length - 1 ].size : null;
     }
     else

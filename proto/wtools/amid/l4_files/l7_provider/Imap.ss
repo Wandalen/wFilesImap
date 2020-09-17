@@ -226,13 +226,13 @@ function fileReadAct( o )
   throw _.err( `${o.filePath} is not a terminal` );
 
   ready.then( () => _read() );
-  // ready.then( () => result );
   ready.then( () =>
   {
     if( o.encoding === 'map' )
     return result;
 
-    result = JSON.stringify( result );
+    let length = result.parts.length;
+    result = result.parts[ length - 1 ].body !== undefined ? result.parts[ length - 1 ].body : JSON.stringify( result );
     if( o.encoding === 'utf8' || o.encoding === 'original.type' )
     return result;
     else if( o.encoding === 'buffer.raw' )
@@ -451,7 +451,6 @@ function statReadAct( o )
       let files = self.dirRead({ filePath : parsed.dirPath, throwing, sync });
       if( files === null || !_.longHas( files, parsed.fullName ) )
       {
-        debugger;
         if( o.throwing )
         throw _.err( `File ${o.filePath} does not exist` );
         return null;
@@ -463,10 +462,12 @@ function statReadAct( o )
         withTail : 0,
         structing : 0,
       }
-      let o2 = _.mapSupplement( { filePath : o.filePath, advanced, throwing, sync }, self.fileReadAct.defaults );
+      let o2 = _.mapSupplement( { filePath : o.filePath, advanced, throwing, sync, encoding : 'map' }, self.fileReadAct.defaults );
       let read = self.fileRead( o2 );
       stat = statMake();
       stat.isFile = returnTrue;
+      stat.atime = read.attributes.date;
+      stat.size = read.parts[ read.parts.length - 1 ].size >= 0 ? read.parts[ read.parts.length - 1 ].size : null;
     }
     else
     {

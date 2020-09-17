@@ -603,7 +603,6 @@ function fileCopy( test )
 
   /* */
 
-  debugger;
   test.case = 'copy file into empty directory';
   providers.effective.dirMake( '/dst' );
   var got = providers.effective.dirRead( '/dst' );
@@ -648,6 +647,72 @@ function fileCopy( test )
   /* */
 
   providers.effective.fileDelete( '/src' );
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
+//
+
+function filesReflectFromImapToHdSingle( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  /* */
+
+  test.case = 'write simple imap file to hard drive';
+  providers.effective.fileWrite( '/src/<$>', 'data' );
+  providers.system.filesReflect
+  ({
+    reflectMap : { '/src/<1>' : providers.hd.path.join( context.suiteTempPath, '1.txt' ) },
+    src : { effectiveProvider : providers.effective },
+    dst : { effectiveProvider : providers.hd },
+  });
+  var got = providers.hd.filesFind( context.suiteTempPath );
+  test.identical( got.length, 1 );
+  test.identical( got[ 0 ].relative, './1.txt' );
+  providers.effective.fileDelete( '/src' );
+
+  /* */
+
+  test.case = 'write imap file with attachment to hard drive';
+  var src =
+`
+From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=file.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/src/<$>', src );
+  var dstPath = providers.hd.path.join( context.suiteTempPath, '1.txt' );
+  providers.system.filesReflect
+  ({
+    reflectMap : { '/src/<1>' : dstPath },
+    src : { effectiveProvider : providers.effective },
+    dst : { effectiveProvider : providers.hd },
+  });
+  var got = providers.hd.fileRead( dstPath );
+  test.equivalent( got, src );
+  providers.effective.fileDelete( '/src' );
+
+  /* */
 
   providers.effective.ready.finally( () => providers.effective.unform() );
   return providers.effective.ready;
@@ -699,6 +764,10 @@ var Proto =
     fileCopy,
 
     areHardLinked,
+
+    //
+
+    fileReflectFromImapToHd,
 
   },
 

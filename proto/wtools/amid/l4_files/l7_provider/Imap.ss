@@ -226,7 +226,20 @@ function fileReadAct( o )
   throw _.err( `${o.filePath} is not a terminal` );
 
   ready.then( () => _read() );
-  ready.then( () => result );
+  // ready.then( () => result );
+  ready.then( () =>
+  {
+    if( o.encoding === 'map' )
+    return result;
+
+    result = JSON.stringify( result );
+    if( o.encoding === 'utf8' || o.encoding === 'original.type' )
+    return result;
+    else if( o.encoding === 'buffer.raw' )
+    return _.bufferNodeFrom( result );
+    else
+    _.assert( 0, 'Unknown encoding.' );
+  });
 
   if( o.sync )
   {

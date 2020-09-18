@@ -40,8 +40,19 @@ function providerMake()
 {
   let context = this;
 
+  let cred =
+  {
+    login : 'user@domain',
+    password : 'password',
+    hostUri : '127.0.0.1:143',
+    tls : false,
+  };
+
   let config = _.censor.configRead();
-  let cred = _.resolver.resolve({ selector : context.cred, src : config });
+  if( config !== null )
+  cred = _.resolver.resolve({ selector : context.cred, src : config });
+
+  debugger;
 
   let providers = Object.create( null );
   providers.effective = providers.imap = _.FileProvider.Imap( cred );

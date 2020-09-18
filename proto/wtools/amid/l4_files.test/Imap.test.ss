@@ -134,11 +134,17 @@ function fileRead( test )
 
   /* */
 
-  test.case = 'read existed file';
+  test.case = 'read existed file, encoding - map';
   providers.effective.fileWrite( '/read/<$>', 'data' );
-  var got = providers.effective.fileRead( '/read/<1>' );
+  var got = providers.effective.fileRead({ filePath : '/read/<1>', encoding : 'map' });
   var exp = [ 'attributes', 'parts', 'seqNo', 'header' ];
   test.identical( _.mapKeys( got ), exp );
+
+  test.case = 'read existed file, encoding - utf8';
+  providers.effective.fileWrite( '/read/<$>', 'data' );
+  var got = providers.effective.fileRead( '/read/<1>' );
+  var exp = 'data';
+  test.identical( got, exp );
 
   test.case = 'read not existed file, throwing - 0';
   var got = providers.effective.fileRead({ filePath : '/read/<999>', throwing : 0 });
@@ -718,75 +724,6 @@ data of text file
   return providers.effective.ready;
 }
 
-//
-
-function filesReflectFromHdToImapSingle( test )
-{
-  let context = this;
-  let providers = context.providerMake();
-  let a = test.assetFor( 'basic' );
-
-  /* */
-
-  test.case = 'write simple imap file to hard drive';
-  var srcPath = a.abs( '1.txt' );
-  providers.hd.fileWrite( srcPath, 'data' );
-  providers.system.filesReflect
-  ({
-    reflectMap : { [ srcPath ] : '/dst/<$>' },
-    src : { effectiveProvider : providers.hd },
-    dst : { effectiveProvider : providers.effective },
-  });
-  var got = providers.effective.dirRead( '/dst' );
-  test.identical( got, [ '<1>' ] );
-  var got = providers.effective.fileRead({ filePath : '/dst/<1>', encoding : 'utf8' });
-  test.identical( got, 'data' );
-  providers.effective.fileDelete( '/dst' );
-
-  /* */
-
-  test.case = 'write imap file with attachment to hard drive';
-  var src =
-`
-From: user@domain.com
-To: user@domain.org
-Subject: some subject
-MIME-Version: 1.0
-Content-Type: multipart/alternate; boundary=__boundary__
-
---__boundary__
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-some text
-
---__boundary__
---__boundary__
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=file.txt
-
-data of text file
---__boundary__--
-`;
-  providers.effective.fileWrite( '/src/<$>', src );
-  var dstPath = a.abs( '1.txt' );
-  providers.system.filesReflect
-  ({
-    reflectMap : { '/src/<1>' : dstPath },
-    src : { effectiveProvider : providers.effective },
-    dst : { effectiveProvider : providers.hd },
-  });
-  var got = providers.hd.fileRead( dstPath );
-  test.equivalent( got, src );
-  providers.effective.fileDelete( '/src' );
-
-  /* */
-
-  providers.effective.ready.finally( () => providers.effective.unform() );
-  return providers.effective.ready;
-}
-
 // --
 // declare
 // --
@@ -837,7 +774,6 @@ var Proto =
     //
 
     filesReflectFromImapToHdSingle,
-    filesReflectFromHdToImapSingle,
 
   },
 

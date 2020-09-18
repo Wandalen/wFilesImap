@@ -80,7 +80,6 @@ function form()
     }
   };
 
-  // debugger;
   return _.Consequence.Try( () => Imap.connect( config ) )
   .then( function( connection )
   {
@@ -253,7 +252,8 @@ function fileReadAct( o )
 
   function _read()
   {
-    return self._connection.openBox( parsed.dirPath ).then( function ( extra ) /* xxx : need to close? */
+    let mailbox = parsed.dirPath.split( '/' ).join( '.' );
+    return self._connection.openBox( mailbox ).then( function ( extra ) /* xxx : need to close? */
     {
       let searchCriteria = [ `${parsed.stripName}` ];
       let bodies = [];
@@ -516,7 +516,6 @@ function statReadAct( o )
     });
     // .then( () =>
     // {
-    //   debugger;
     //   return result;
     // });
   }

@@ -467,7 +467,6 @@ function statReadAct( o )
       stat = statMake();
       stat.isFile = returnTrue;
       stat.atime = read.attributes.date;
-      debugger;
       stat.size = read.parts[ read.parts.length - 1 ].size >= 0 ? read.parts[ read.parts.length - 1 ].size : null;
     }
     else
@@ -936,8 +935,7 @@ function fileCopyAct( o )
       if( err )
       throw _.err( err );
 
-      let files = self.dirReadAct({ filePath : dstParsed.dirPath, sync : 1 });
-      o.context.options.dstPath = path.join( dstParsed.dirPath, files[ files.length - 1 ] );
+      o.context.options.dstPath = self.pathUnmock( o.dstPath );
       self._connection.closeBox( srcPath );
       return arg;
     });
@@ -1023,6 +1021,21 @@ function areHardLinkedAct( o )
 
 _.routineExtend( areHardLinkedAct, Parent.prototype.areHardLinkedAct );
 
+//
+
+function pathUnmock( path, global )
+{
+  let self = this;
+
+  let parsed = self.pathParse( path );
+  if( !parsed.isTerminal )
+  return;
+
+  let prefix = global ? self.originPath : '';
+  let files = self.dirReadAct({ filePath : parsed.dirPath, sync : 1 });
+  return self.path.join( prefix + parsed.dirPath, files[ files.length - 1 ] );
+}
+
 // --
 // relationship
 // --
@@ -1039,6 +1052,7 @@ let Composes =
   tls : true,
   // tls : false,
   safe : 0,
+  pathMocking : 1,
 
 }
 
@@ -1112,6 +1126,10 @@ let Extension =
 
   hardLinkBreakAct,
   areHardLinkedAct,
+
+  //
+
+  pathUnmock,
 
   //
 

@@ -973,6 +973,75 @@ function filesReflectFromHdToImapMultiple( test )
   return providers.effective.ready;
 }
 
+//
+
+function filesReflectFromImapToExtractSingle( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+  let a = test.assetFor( 'basic' );
+
+  /* */
+
+  test.case = 'write simple imap file to hard drive';
+  providers.effective.fileWrite( '/src/<$>', 'data' );
+  providers.system.filesReflect
+  ({
+    reflectMap : { '/src/<1>' : a.abs( '1.txt' ) },
+    src : { effectiveProvider : providers.effective },
+    dst : { effectiveProvider : providers.extract },
+  });
+  var got = providers.extract.filesFind( a.abs( '.' ) );
+  test.identical( got.length, 1 );
+  test.identical( got[ 0 ].relative, './1.txt' );
+  var got = providers.extract.fileRead( a.abs( '1.txt' ) );
+  test.identical( got, 'data' );
+  providers.effective.fileDelete( '/src' );
+
+  /* */
+
+  test.case = 'write imap file with attachment to hard drive';
+  var src =
+`
+From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=file.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/src/<$>', src );
+  var dstPath = a.abs( '1.txt' );
+  providers.system.filesReflect
+  ({
+    reflectMap : { '/src/<1>' : dstPath },
+    src : { effectiveProvider : providers.effective },
+    dst : { effectiveProvider : providers.extract },
+  });
+  var got = providers.extract.fileRead( dstPath );
+  test.equivalent( got, src );
+  providers.effective.fileDelete( '/src' );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
 // --
 // declare
 // --
@@ -1005,6 +1074,7 @@ var Proto =
   {
 
     login,
+
     dirRead,
     fileRead,
     statRead,
@@ -1026,6 +1096,8 @@ var Proto =
     filesReflectFromImapToHdMultiple,
     filesReflectFromHdToImapSingle,
     filesReflectFromHdToImapMultiple,
+
+    filesReflectFromImapToExtractSingle,
 
   },
 

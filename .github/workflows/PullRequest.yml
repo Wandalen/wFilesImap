@@ -20,6 +20,7 @@ jobs :
           # workflow_id : ${{ github.workflow }}
 
   Fast :
+    if : "!contains( github.repository, 'wFilesImap' )"
     runs-on : ${{ matrix.os }}
     strategy :
       fail-fast : false
@@ -31,6 +32,34 @@ jobs :
     - run : git config --global user.email "testing@testing.com"
     - run : git config --global user.name "Testing"
     - uses : actions/checkout@v2
+    - name : ${{ matrix.node-version }}
+      uses : actions/setup-node@v1
+      with :
+        node-version : ${{ matrix.node-version }}
+    - run : npm i
+    - name : npm test
+      run : npm test
+      env :
+        WTOOLS_BOT_TOKEN : ${{ secrets.WTOOLS_BOT_TOKEN }}
+
+  FilesImapFast :
+    if : "contains( github.repository, 'wFilesImap' )"
+    runs-on : ${{ matrix.os }}
+    strategy :
+      fail-fast : false
+      matrix :
+        os : [ ubuntu-latest ]
+        node-version : [ 14.x ]
+    steps :
+    - run : git config --global core.autocrlf input
+    - run : git config --global user.email "testing@testing.com"
+    - run : git config --global user.name "Testing"
+    - uses : actions/checkout@v2
+    - run : curl -o docker-compose.yml https://raw.githubusercontent.com/tomav/docker-mailserver/master/docker-compose.yml.dist
+    - run : curl -o .env https://raw.githubusercontent.com/tomav/docker-mailserver/master/.env.dist
+    - run : curl -o env-mailserver https://raw.githubusercontent.com/tomav/docker-mailserver/master/env-mailserver.dist
+    - run : docker-compose up -d mail
+    - run : docker exec mail addmailuser user@domain password
     - name : ${{ matrix.node-version }}
       uses : actions/setup-node@v1
       with :

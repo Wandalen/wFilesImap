@@ -467,7 +467,7 @@ function statReadAct( o )
       stat = statMake();
       stat.isFile = returnTrue;
       stat.atime = read.attributes.date;
-      stat.size = read.parts[ read.parts.length - 1 ].size >= 0 ? read.parts[ read.parts.length - 1 ].size : null;
+      stat.size = read.parts[ 1 ].size >= 0 ? read.parts[ 1 ].size : null;
     }
     else
     {

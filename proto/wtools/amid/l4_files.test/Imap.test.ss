@@ -1196,6 +1196,86 @@ function filesReflectFromExtractToImapSingle( test )
   return providers.effective.ready;
 }
 
+//
+
+function filesReflectFromExtractToImapMultiple( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+  let a = test.assetFor( 'basic' );
+
+  /* */
+
+  test.case = 'write simple extract file to imap';
+  providers.extract.fileWrite( a.abs( 'a.txt' ), 'data' );
+  providers.extract.fileWrite( a.abs( 'b.txt' ), 'data' );
+  providers.extract.fileWrite( a.abs( 'file.txt' ), 'data' );
+  providers.extract.fileWrite( a.abs( '1.txt' ), 'data1' );
+  providers.system.filesReflect
+  ({
+    reflectMap : { [ a.abs( '.' ) ] : '/dst' },
+    src : { effectiveProvider : providers.extract },
+    dst : { effectiveProvider : providers.effective },
+  });
+  var got = providers.effective.dirRead( '/dst' );
+  test.identical( got, [ '<1>', '<2>', '<3>', '<4>' ] );
+  var got = providers.effective.fileRead({ filePath : '/dst/<1>', encoding : 'utf8' });
+  test.identical( got, 'data1' );
+  var got = providers.effective.fileRead({ filePath : '/dst/<4>', encoding : 'utf8' });
+  test.identical( got, 'data' );
+  providers.effective.fileDelete( '/dst' );
+
+  /* */
+
+  test.case = 'write extract file with attachment to imap';
+  var src =
+  '\r\n'
+  + 'From: user@domain.com\r\n'
+  + 'To: user@domain.org\r\n'
+  + 'Subject: some subjectg\r\n'
+  + 'MIME-Version: 1.0\r\n'
+  + '\r\n'
+  + 'Content-Type: multipart/alternate; boundary=__boundary__'
+  + '\r\n'
+  + '--__boundary__\r\n'
+  + 'Content-Type: text/plain; charset=UTF-8\r\n'
+  + 'Content-Transfer-Encoding: 7bit\r\n'
+  + '\r\n'
+  + 'some text\r\n'
+  + '\r\n'
+  + '--__boundary__\r\n'
+  + '--__boundary__\r\n'
+  + 'Content-Type: text/plain; charset=UTF-8\r\n'
+  + 'Content-Transfer-Encoding: 7bit\r\n'
+  + 'Content-Disposition: attachment; filename=file.txt\r\n'
+  + '\r\n'
+  + 'data of text file\r\n'
+  + '--__boundary__--\r\n'
+  + '\r\n';
+  providers.extract.fileWrite( a.abs( 'a.txt' ), src );
+  providers.extract.fileWrite( a.abs( 'b.txt' ), src );
+  providers.extract.fileWrite( a.abs( 'file.txt' ), src );
+  providers.extract.fileWrite( a.abs( '1.txt' ), 'data' );
+  providers.system.filesReflect
+  ({
+    reflectMap : { [ a.abs( '.' ) ] : '/dst' },
+    src : { effectiveProvider : providers.extract },
+    dst : { effectiveProvider : providers.effective },
+  });
+  var got = providers.effective.dirRead( '/dst' );
+  test.identical( got, [ '<1>', '<2>', '<3>', '<4>' ] );
+  var got = providers.effective.fileRead({ filePath : '/dst/<1>', encoding : 'utf8' });
+  test.identical( got, 'data' );
+  var got = providers.effective.fileRead({ filePath : '/dst/<4>', encoding : 'utf8' });
+  test.identical( got, src );
+  providers.effective.fileDelete( '/dst' );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
 // --
 // declare
 // --
@@ -1254,6 +1334,7 @@ var Proto =
     filesReflectFromImapToExtractSingle,
     filesReflectFromImapToExtractMultiple,
     filesReflectFromExtractToImapSingle,
+    filesReflectFromExtractToImapMultiple,
 
   },
 

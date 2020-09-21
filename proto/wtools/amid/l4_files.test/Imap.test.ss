@@ -1042,6 +1042,90 @@ data of text file
   return providers.effective.ready;
 }
 
+//
+
+function filesReflectFromImapToExtractMultiple( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+  let a = test.assetFor( 'basic' );
+
+  /* */
+
+  test.case = 'write simple imap file to hard drive';
+  providers.effective.fileWrite( '/src/<$>', 'data' );
+  providers.effective.fileWrite( '/src/<$>', 'data' );
+  providers.effective.fileWrite( '/src/<$>', 'data' );
+  providers.effective.fileWrite( '/src/<$>', 'data1' );
+  providers.system.filesReflect
+  ({
+    reflectMap : { '/src' : a.abs( '.' ) },
+    src : { effectiveProvider : providers.effective },
+    dst : { effectiveProvider : providers.extract },
+  });
+  var got = providers.extract.filesFind( a.abs( '.' ) );
+  test.identical( got.length, 4 );
+  test.identical( got[ 0 ].relative, './<1>' );
+  test.identical( got[ 1 ].relative, './<2>' );
+  var got = providers.extract.fileRead( a.abs( '<1>' ) );
+  test.identical( got, 'data' );
+  var got = providers.extract.fileRead( a.abs( '<4>' ) );
+  test.identical( got, 'data1' );
+  providers.effective.fileDelete( '/src' );
+
+  /* */
+
+  test.case = 'write imap file with attachment to hard drive';
+  var src =
+`
+From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=file.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/src/<$>', src );
+  providers.effective.fileWrite( '/src/<$>', src );
+  providers.effective.fileWrite( '/src/<$>', src );
+  providers.effective.fileWrite( '/src/<$>', 'data' );
+  var dstPath = a.abs( '.' );
+  providers.system.filesReflect
+  ({
+    reflectMap : { '/src' : dstPath },
+    src : { effectiveProvider : providers.effective },
+    dst : { effectiveProvider : providers.extract },
+  });
+  var got = providers.extract.filesFind( a.abs( '.' ) );
+  test.identical( got.length, 4 );
+  test.identical( got[ 0 ].relative, './<1>' );
+  test.identical( got[ 1 ].relative, './<2>' );
+  var got = providers.extract.fileRead( a.abs( '<1>' ) );
+  test.equivalent( got, src );
+  var got = providers.extract.fileRead( a.abs( '<4>' ) );
+  test.equivalent( got, 'data' );
+  providers.effective.fileDelete( '/src' );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
 // --
 // declare
 // --
@@ -1098,6 +1182,7 @@ var Proto =
     filesReflectFromHdToImapMultiple,
 
     filesReflectFromImapToExtractSingle,
+    filesReflectFromImapToExtractMultiple,
 
   },
 

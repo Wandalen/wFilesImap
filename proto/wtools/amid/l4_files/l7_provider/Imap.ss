@@ -1022,6 +1022,16 @@ _.routineExtend( areHardLinkedAct, Parent.prototype.areHardLinkedAct );
 
 //
 
+function pathMock( path, global )
+{
+  let self = this;
+
+  let parsed = self.pathParse( path );
+  return self.path.join( parsed.dirPath, '<$>' );
+}
+
+//
+
 function pathUnmock( path, global )
 {
   let self = this;
@@ -1128,6 +1138,7 @@ let Extension =
 
   //
 
+  pathMock,
   pathUnmock,
 
   //

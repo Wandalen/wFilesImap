@@ -235,7 +235,7 @@ function fileReadAct( o )
     if( o.encoding === 'utf8' || o.encoding === 'original.type' )
     return result;
     else if( o.encoding === 'buffer.raw' )
-    return _.bufferNodeFrom( result );
+    return _.bufferBytesFrom( result ).buffer;
     else
     _.assert( 0, 'Unknown encoding.' );
   });

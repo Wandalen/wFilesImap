@@ -699,8 +699,7 @@ function filesReflectFromImapToHdSingle( test )
 
   test.case = 'write imap file with attachment to hard drive';
   var src =
-`
-From: user@domain.com
+`From: user@domain.com
 To: user@domain.org
 Subject: some subject
 MIME-Version: 1.0
@@ -774,8 +773,7 @@ function filesReflectFromImapToHdMultiple( test )
 
   test.case = 'write imap file with attachment to hard drive';
   var src =
-`
-From: user@domain.com
+`From: user@domain.com
 To: user@domain.org
 Subject: some subject
 MIME-Version: 1.0
@@ -852,8 +850,7 @@ function filesReflectFromHdToImapSingle( test )
 
   test.case = 'write hd file with attachment to imap';
   var src =
-  '\r\n'
-  + 'From: user@domain.com\r\n'
+  'From: user@domain.com\r\n'
   + 'To: user@domain.org\r\n'
   + 'Subject: some subjectg\r\n'
   + 'MIME-Version: 1.0\r\n'
@@ -926,8 +923,7 @@ function filesReflectFromHdToImapMultiple( test )
 
   test.case = 'write hd file with attachment to imap';
   var src =
-  '\r\n'
-  + 'From: user@domain.com\r\n'
+  'From: user@domain.com\r\n'
   + 'To: user@domain.org\r\n'
   + 'Subject: some subjectg\r\n'
   + 'MIME-Version: 1.0\r\n'
@@ -1002,8 +998,7 @@ function filesReflectFromImapToExtractSingle( test )
 
   test.case = 'write imap file with attachment to hard drive';
   var src =
-`
-From: user@domain.com
+`From: user@domain.com
 To: user@domain.org
 Subject: some subject
 MIME-Version: 1.0
@@ -1077,8 +1072,7 @@ function filesReflectFromImapToExtractMultiple( test )
 
   test.case = 'write imap file with attachment to hard drive';
   var src =
-`
-From: user@domain.com
+`From: user@domain.com
 To: user@domain.org
 Subject: some subject
 MIME-Version: 1.0
@@ -1155,8 +1149,7 @@ function filesReflectFromExtractToImapSingle( test )
 
   test.case = 'write extract file with attachment to imap';
   var src =
-  '\r\n'
-  + 'From: user@domain.com\r\n'
+  'From: user@domain.com\r\n'
   + 'To: user@domain.org\r\n'
   + 'Subject: some subjectg\r\n'
   + 'MIME-Version: 1.0\r\n'
@@ -1229,8 +1222,7 @@ function filesReflectFromExtractToImapMultiple( test )
 
   test.case = 'write extract file with attachment to imap';
   var src =
-  '\r\n'
-  + 'From: user@domain.com\r\n'
+  'From: user@domain.com\r\n'
   + 'To: user@domain.org\r\n'
   + 'Subject: some subjectg\r\n'
   + 'MIME-Version: 1.0\r\n'

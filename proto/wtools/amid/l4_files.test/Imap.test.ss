@@ -24,6 +24,7 @@ function onSuiteBegin( test )
 {
   let context = this;
   context.suiteTempPath = _.fileProvider.path.tempOpen( _.fileProvider.path.join( __dirname, '../..'  ), 'FileProviderImap' );
+  context.assetsOriginalPath = _.path.join( __dirname, '_asset' );
 }
 
 //
@@ -971,6 +972,52 @@ function filesReflectFromHdToImapMultiple( test )
 
 //
 
+function filesReflectBothSidesSingleFile( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+  let a = test.assetFor( 'basic' );
+  a.reflect();
+
+  /* */
+
+  test.case = 'file from hd to imap';
+  providers.system.filesReflect
+  ({
+    reflectMap : { [ a.abs( 'Img.drawio' ) ] : '/dst/<$>' },
+    src : { effectiveProvider : providers.hd },
+    dst : { effectiveProvider : providers.effective },
+  });
+  var got = providers.effective.fileRead( '/dst/<1>' );
+  test.equivalent( got, providers.hd.fileRead( a.abs( 'Img.drawio' ) ) );
+  providers.effective.fileDelete( '/dst' );
+
+  test.case = 'file from imap to hd';
+  providers.system.filesReflect
+  ({
+    reflectMap : { [ a.abs( 'Img.drawio' ) ] : '/src/<$>' },
+    src : { effectiveProvider : providers.hd },
+    dst : { effectiveProvider : providers.effective },
+  });
+  providers.system.filesReflect
+  ({
+    reflectMap : { '/src/<1>' : a.abs( 'Copy' ) },
+    src : { effectiveProvider : providers.effective },
+    dst : { effectiveProvider : providers.hd },
+  });
+  var got = providers.hd.fileRead( a.abs( 'Copy' ) );
+  test.equivalent( got, providers.effective.fileRead( '/src/<1>' ) );
+  test.identical( got, providers.hd.fileRead( a.abs( 'Img.drawio' ) ) );
+  providers.effective.fileDelete( '/src' );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
+//
+
 function filesReflectFromImapToExtractSingle( test )
 {
   let context = this;
@@ -1287,6 +1334,7 @@ var Proto =
   {
     providerMake,
     suiteTempPath : null,
+    assetsOriginalPath : null,
     cred :
     {
       login : 'about/email.login',
@@ -1322,6 +1370,7 @@ var Proto =
     filesReflectFromImapToHdMultiple,
     filesReflectFromHdToImapSingle,
     filesReflectFromHdToImapMultiple,
+    filesReflectBothSidesSingleFile,
 
     filesReflectFromImapToExtractSingle,
     filesReflectFromImapToExtractMultiple,

@@ -232,12 +232,25 @@ function fileReadAct( o )
 
     let length = result.parts.length;
     result = result.parts[ length - 1 ].body !== undefined ? result.parts[ length - 1 ].body : JSON.stringify( result );
-    if( o.encoding === 'utf8' || o.encoding === 'original.type' )
+
+    if( o.encoding === 'buffer.raw' )
+    {
+      result = _.bufferBytesFrom( result ).buffer;
+    }
+    else if( !( o.encoding === 'utf8' ) && !( o.encoding === 'original.type' ) )
+    {
+      try
+      {
+        result = BufferNode.from( result, o.encoding );
+      }
+      catch( err )
+      {
+        _.errAttend( err );
+        throw _.err( 'Unknown encoding', err );
+      }
+    }
+
     return result;
-    else if( o.encoding === 'buffer.raw' )
-    return _.bufferBytesFrom( result ).buffer;
-    else
-    _.assert( 0, 'Unknown encoding.' );
   });
 
   if( o.sync )
@@ -257,12 +270,14 @@ function fileReadAct( o )
     {
       let searchCriteria = [ `${parsed.stripName}` ];
       let bodies = [];
+
       if( o.advanced.withHeader )
       bodies.push( 'HEADER' );
       if( o.advanced.withBody )
       bodies.push( 'TEXT' );
       if( o.advanced.withTail )
       bodies.push( '' );
+
       let fetchOptions =
       {
         bodies,
@@ -294,8 +309,6 @@ function fileReadAct( o )
       });
     }
   }
-
-  /* */
 
 }
 

@@ -984,18 +984,18 @@ function filesReflectBothSidesSingleFile( test )
   test.case = 'file from hd to imap';
   providers.system.filesReflect
   ({
-    reflectMap : { [ a.abs( 'Img.drawio' ) ] : '/dst/<$>' },
+    reflectMap : { [ a.abs( 'File.xml' ) ] : '/dst/<$>' },
     src : { effectiveProvider : providers.hd },
     dst : { effectiveProvider : providers.effective },
   });
   var got = providers.effective.fileRead( '/dst/<1>' );
-  test.equivalent( got, providers.hd.fileRead( a.abs( 'Img.drawio' ) ) );
+  test.identical( got, providers.hd.fileRead( a.abs( 'File.xml' ) ) );
   providers.effective.fileDelete( '/dst' );
 
   test.case = 'file from imap to hd';
   providers.system.filesReflect
   ({
-    reflectMap : { [ a.abs( 'Img.drawio' ) ] : '/src/<$>' },
+    reflectMap : { [ a.abs( 'File.xml' ) ] : '/src/<$>' },
     src : { effectiveProvider : providers.hd },
     dst : { effectiveProvider : providers.effective },
   });
@@ -1006,8 +1006,8 @@ function filesReflectBothSidesSingleFile( test )
     dst : { effectiveProvider : providers.hd },
   });
   var got = providers.hd.fileRead( a.abs( 'Copy' ) );
-  test.equivalent( got, providers.effective.fileRead( '/src/<1>' ) );
-  test.identical( got, providers.hd.fileRead( a.abs( 'Img.drawio' ) ) );
+  test.identical( got, providers.effective.fileRead( '/src/<1>' ) );
+  test.identical( got, providers.hd.fileRead( a.abs( 'File.xml' ) ) );
   providers.effective.fileDelete( '/src' );
 
   /* */

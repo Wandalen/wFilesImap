@@ -186,6 +186,16 @@ function pathParse( filePath )
   return result;
 }
 
+//
+
+function _pathDirNormalize( srcPath )
+{
+  let self = this;
+  let path = self.path;
+
+  return srcPath.split( path.upToken ).join( path.hereToken );
+}
+
 // --
 // read
 // --
@@ -265,7 +275,7 @@ function fileReadAct( o )
 
   function _read()
   {
-    let mailbox = parsed.dirPath.split( '/' ).join( '.' );
+    let mailbox = self._pathDirNormalize( parsed.dirPath );
     return self._connection.openBox( mailbox ).then( function ( extra ) /* xxx : need to close? */
     {
       let searchCriteria = [ `${parsed.stripName}` ];
@@ -363,7 +373,7 @@ function dirReadAct( o )
     return result;
 
     filePath = path.unabsolute( filePath );
-    filePath = filePath.split( '/' ).join( '.' );
+    filePath = self._pathDirNormalize( filePath );
     return self._connection.openBox( filePath ).then( function( extra ) /* xxx : need to close? */
     {
       let searchCriteria = [ 'ALL' ];
@@ -513,7 +523,7 @@ function statReadAct( o )
     .give( function()
     {
       let con = this;
-      let dirPath = parsed.unabsolutePath.split( '/' ).join( '.' );
+      let dirPath = self._pathDirNormalize( parsed.unabsolutePath );
 
       self._connection.openBox( dirPath )
       .then( ( extra ) => /* xxx : need to close? */
@@ -655,7 +665,7 @@ function fileWriteAct( o )
       if( o.writeMode === 'rewrite' )
       {
         let dirPath = path.unabsolute( parsed.dirPath );
-        let mailbox = dirPath.split( '/' ).join( '.' );
+        let mailbox = self._pathDirNormalize( dirPath );
 
         let o2 = Object.create( null );
         o2.mailbox = mailbox;
@@ -723,7 +733,7 @@ function fileDeleteAct( o )
       resolvingSoftLink : 0
     });
     let mailbox = path.unabsolute( parsed.isTerminal ? parsed.dirPath : parsed.originalPath );
-    mailbox = mailbox.split( '/' ).join( '.' );
+    mailbox = self._pathDirNormalize( mailbox );
 
     if( stat && stat.isDir() )
     {
@@ -741,7 +751,7 @@ function fileDeleteAct( o )
         dirQueue.push( ... dirs.map( ( e ) => `${ dirQueue[ 0 ] }/${ e }` ) );
 
         let mailboxPath = path.unabsolute( dirQueue[ 0 ] );
-        mailboxPath = mailboxPath.split( '/' ).join( '.' );
+        mailboxPath = self._pathDirNormalize( mailboxPath );
         deletedList.push( ... dirs.map( ( e ) => `${ mailboxPath }.${ e }` ) );
 
         dirQueue.shift();
@@ -817,7 +827,7 @@ function dirMakeAct( o )
     if( parsed.isTerminal )
     return con.error( 'Path to directory should have not name of terminal file.' );
 
-    let dirPath = parsed.unabsolutePath.split( '/' ).join( '.' );
+    let dirPath = self._pathDirNormalize( parsed.unabsolutePath );
 
     self._connection.addBox( dirPath )
     .then( () => /* xxx : need to close? */
@@ -873,8 +883,8 @@ function fileRenameAct( o )
     if( dstParsed.isTerminal )
     return ready.error( _.err( '{-o.dstPath-} should be path to directory.' ) );
 
-    let srcPath = srcParsed.unabsolutePath.split( '/' ).join( '.' );
-    let dstPath = dstParsed.unabsolutePath.split( '/' ).join( '.' );
+    let srcPath = self._pathDirNormalize( srcParsed.unabsolutePath );
+    let dstPath = self._pathDirNormalize( dstParsed.unabsolutePath );
 
     self._connection.imap.renameBox( srcPath, dstPath, handleErr );
 
@@ -931,9 +941,9 @@ function fileCopyAct( o )
     return ready.error( _.err( '{-o.dstPath-} should be path to file with name <$>.' ) );
 
     let srcPath = path.unabsolute( srcParsed.dirPath );
-    srcPath = srcPath.split( '/' ).join( '.' );
+    srcPath = self._pathDirNormalize( srcPath );
     let dstPath = path.unabsolute( dstParsed.dirPath );
-    dstPath = dstPath.split( '/' ).join( '.' );
+    dstPath = self._pathDirNormalize( dstPath );
     let msgId = _.arrayAs( srcParsed.stripName );
 
     self._connection.openBox( srcPath )
@@ -1152,6 +1162,7 @@ let Extension =
   pathCurrentAct,
   pathResolveSoftLinkAct,
   pathParse,
+  _pathDirNormalize,
 
   // read
 

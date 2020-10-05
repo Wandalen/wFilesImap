@@ -969,6 +969,36 @@ _.routineExtend( fileCopyAct, Parent.prototype.fileCopyAct );
 
 //
 
+function _fileCopyPrepare( o )
+{
+  _.assert( arguments.length === 1, 'Expects single options map {-o-}.' );
+  _.routineOptions( _fileCopyPrepare, o );
+
+  if( o.dstProvider )
+  {
+    _.assert( !o.srcProvider || o.srcProvider instanceof _.FileProvider.Imap, 'Expects no {-o.srcProvider-} or provider Imap.' );
+
+    o.data = BufferNode.from( o.data, 'base64' );
+    o.context.srcResolvedStat.size = o.data.byteLength;
+  }
+  else if( o.srcProvider )
+  {
+    _.assert( !o.dstProvider || o.dstProvider instanceof _.FileProvider.Imap, 'Expects no {-o.dstProvider-} or provider Imap.' );
+
+    o.data = BufferNode.from( o.data, 'base64' );
+  }
+}
+
+_fileCopyPrepare.defaults =
+{
+  srcProvider : null,
+  dstProvider : null,
+  options : null,
+  data : null,
+};
+
+//
+
 function softLinkAct( o )
 {
   let self = this;
@@ -1070,7 +1100,7 @@ let Composes =
   login : null,
   password : null,
   hostUri : null,
-  authTimeOut : 5000,
+  authTimeOut : 10000, /* 5000 */
   tls : true,
   // tls : false,
   safe : 0,

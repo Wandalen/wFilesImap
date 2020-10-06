@@ -995,7 +995,7 @@ function filesReflectBothSidesSingleFile( test )
     src : { effectiveProvider : providers.hd },
     dst : { effectiveProvider : providers.effective },
   });
-  var got = providers.effective.fileRead( '/dst/<1>' );
+  var got = providers.effective.fileRead( '/dst/<1>', 'base64' );
   test.identical( got, providers.hd.fileRead( a.abs( 'File.xml' ) ) );
   providers.effective.fileDelete( '/dst' );
 
@@ -1013,7 +1013,7 @@ function filesReflectBothSidesSingleFile( test )
     dst : { effectiveProvider : providers.hd },
   });
   var got = providers.hd.fileRead( a.abs( 'Copy' ) );
-  test.identical( got, providers.effective.fileRead( '/src/<1>' ) );
+  test.identical( got, providers.effective.fileRead( '/src/<1>', 'base64' ) );
   test.identical( got, providers.hd.fileRead( a.abs( 'File.xml' ) ) );
   providers.effective.fileDelete( '/src' );
 
@@ -1026,7 +1026,7 @@ function filesReflectBothSidesSingleFile( test )
     src : { effectiveProvider : providers.hd },
     dst : { effectiveProvider : providers.effective },
   });
-  var got = providers.effective.fileRead( '/dst/<1>' );
+  var got = providers.effective.fileRead( '/dst/<1>', 'base64' );
   test.identical( got, providers.hd.fileRead( a.abs( 'File.txt' ) ) );
   providers.effective.fileDelete( '/dst' );
 
@@ -1044,7 +1044,7 @@ function filesReflectBothSidesSingleFile( test )
     dst : { effectiveProvider : providers.hd },
   });
   var got = providers.hd.fileRead( a.abs( 'Copy' ) );
-  test.identical( got, providers.effective.fileRead( '/src/<1>' ) );
+  test.identical( got, providers.effective.fileRead( '/src/<1>', 'base64' ) );
   test.identical( got, providers.hd.fileRead( a.abs( 'File.txt' ) ) );
   providers.effective.fileDelete( '/src' );
 
@@ -1065,7 +1065,8 @@ function filesReflectFromImapToExtractSingle( test )
   /* */
 
   test.case = 'write simple imap file to hard drive';
-  providers.effective.fileWrite( '/src/<$>', 'data' );
+  var data = BufferNode.from( 'data' ).toString( 'base64' );
+  providers.effective.fileWrite( '/src/<$>', data );
   providers.system.filesReflect
   ({
     reflectMap : { '/src/<1>' : a.abs( '1.txt' ) },
@@ -1133,10 +1134,12 @@ function filesReflectFromImapToExtractMultiple( test )
   /* */
 
   test.case = 'write simple imap file to hard drive';
-  providers.effective.fileWrite( '/src/<$>', 'data' );
-  providers.effective.fileWrite( '/src/<$>', 'data' );
-  providers.effective.fileWrite( '/src/<$>', 'data' );
-  providers.effective.fileWrite( '/src/<$>', 'data1' );
+  var data = BufferNode.from( 'data' ).toString( 'base64' );
+  var data1 = BufferNode.from( 'data1' ).toString( 'base64' );
+  providers.effective.fileWrite( '/src/<$>', data );
+  providers.effective.fileWrite( '/src/<$>', data );
+  providers.effective.fileWrite( '/src/<$>', data );
+  providers.effective.fileWrite( '/src/<$>', data1 );
   providers.system.filesReflect
   ({
     reflectMap : { '/src' : a.abs( '.' ) },
@@ -1156,6 +1159,7 @@ function filesReflectFromImapToExtractMultiple( test )
   /* */
 
   test.case = 'write imap file with attachment to hard drive';
+  var data = BufferNode.from( 'data' ).toString( 'base64' );
   var src =
 `From: user@domain.com
 To: user@domain.org
@@ -1181,7 +1185,7 @@ data of text file
   providers.effective.fileWrite( '/src/<$>', src );
   providers.effective.fileWrite( '/src/<$>', src );
   providers.effective.fileWrite( '/src/<$>', src );
-  providers.effective.fileWrite( '/src/<$>', 'data' );
+  providers.effective.fileWrite( '/src/<$>', data );
   var dstPath = a.abs( '.' );
   providers.system.filesReflect
   ({
@@ -1226,7 +1230,7 @@ function filesReflectFromExtractToImapSingle( test )
   });
   var got = providers.effective.dirRead( '/dst' );
   test.identical( got, [ '<1>' ] );
-  var got = providers.effective.fileRead({ filePath : '/dst/<1>', encoding : 'utf8' });
+  var got = providers.effective.fileRead({ filePath : '/dst/<1>', encoding : 'base64' });
   test.identical( got, 'data' );
   providers.effective.fileDelete( '/dst' );
 
@@ -1256,7 +1260,7 @@ function filesReflectFromExtractToImapSingle( test )
   + 'data of text file\r\n'
   + '--__boundary__--\r\n'
   + '\r\n';
-  var srcPath = a.abs( '1.txt' );
+  var srcPath = a.abs( '<1>' );
   providers.extract.fileWrite( srcPath, src );
   providers.system.filesReflect
   ({
@@ -1294,18 +1298,21 @@ function filesReflectFromExtractToImapMultiple( test )
     reflectMap : { [ a.abs( '.' ) ] : '/dst' },
     src : { effectiveProvider : providers.extract },
     dst : { effectiveProvider : providers.effective },
+    onDstName : ( name ) => name === '.' ? '.' : '<$>',
   });
   var got = providers.effective.dirRead( '/dst' );
   test.identical( got, [ '<1>', '<2>', '<3>', '<4>' ] );
-  var got = providers.effective.fileRead({ filePath : '/dst/<1>', encoding : 'utf8' });
+  var got = providers.effective.fileRead({ filePath : '/dst/<1>', encoding : 'base64' });
   test.identical( got, 'data1' );
-  var got = providers.effective.fileRead({ filePath : '/dst/<4>', encoding : 'utf8' });
+  var got = providers.effective.fileRead({ filePath : '/dst/<4>', encoding : 'base64' });
   test.identical( got, 'data' );
   providers.effective.fileDelete( '/dst' );
+  providers.extract.filesDelete( a.abs( '.' ) );
 
   /* */
 
   test.case = 'write extract file with attachment to imap';
+  var data = BufferNode.from( 'data' ).toString( 'base64' );
   var src =
   'From: user@domain.com\r\n'
   + 'To: user@domain.org\r\n'
@@ -1329,22 +1336,23 @@ function filesReflectFromExtractToImapMultiple( test )
   + 'data of text file\r\n'
   + '--__boundary__--\r\n'
   + '\r\n';
-  providers.extract.fileWrite( a.abs( 'a.txt' ), src );
-  providers.extract.fileWrite( a.abs( 'b.txt' ), src );
-  providers.extract.fileWrite( a.abs( 'file.txt' ), src );
-  providers.extract.fileWrite( a.abs( '1.txt' ), 'data' );
+  providers.extract.fileWrite( a.abs( '<1>' ), src );
+  providers.extract.fileWrite( a.abs( '<2>' ), src );
+  providers.extract.fileWrite( a.abs( '<3>' ), src );
+  providers.extract.fileWrite( a.abs( '<4>' ), data );
   providers.system.filesReflect
   ({
     reflectMap : { [ a.abs( '.' ) ] : '/dst' },
     src : { effectiveProvider : providers.extract },
     dst : { effectiveProvider : providers.effective },
+    onDstName : ( name ) => name === '.' ? '.' : '<$>',
   });
   var got = providers.effective.dirRead( '/dst' );
   test.identical( got, [ '<1>', '<2>', '<3>', '<4>' ] );
   var got = providers.effective.fileRead({ filePath : '/dst/<1>', encoding : 'utf8' });
-  test.identical( got, 'data' );
-  var got = providers.effective.fileRead({ filePath : '/dst/<4>', encoding : 'utf8' });
   test.identical( got, src );
+  var got = providers.effective.fileRead({ filePath : '/dst/<4>', encoding : 'base64' });
+  test.identical( got, 'data' );
   providers.effective.fileDelete( '/dst' );
 
   /* */

@@ -251,7 +251,7 @@ function fileReadAct( o )
     {
       try
       {
-        result = BufferNode.from( result, o.encoding );
+        result = BufferNode.from( result, o.encoding ).toString( 'utf8' );
       }
       catch( err )
       {
@@ -981,22 +981,42 @@ _.routineExtend( fileCopyAct, Parent.prototype.fileCopyAct );
 
 function _fileCopyPrepare( o )
 {
+  let self = this;
+
   _.assert( arguments.length === 1, 'Expects single options map {-o-}.' );
   _.routineOptions( _fileCopyPrepare, o );
 
-  if( o.dstProvider )
-  {
-    _.assert( !o.srcProvider || o.srcProvider instanceof _.FileProvider.Imap, 'Expects no {-o.srcProvider-} or provider Imap.' );
+  let read = o.srcProvider.system.fileRead( o.options.srcPath, 'utf8' );
 
-    o.data = BufferNode.from( o.data, 'base64' );
-    o.context.srcResolvedStat.size = o.data.byteLength;
-  }
-  else if( o.srcProvider )
+  if( o.srcProvider instanceof _.FileProvider.Imap || !o.srcProvider )
   {
-    _.assert( !o.dstProvider || o.dstProvider instanceof _.FileProvider.Imap, 'Expects no {-o.dstProvider-} or provider Imap.' );
+    _.assert( o.dstProvider, 'Expects destination provider {-dstProvider-}.' );
 
-    o.data = BufferNode.from( o.data, 'base64' );
+    let numberOfLines = _.strLinesCount( read );
+    if( numberOfLines === 1 )
+    {
+      o.data = BufferNode.from( read, 'base64' );
+      o.data = _.bufferBytesFrom( o.data );
+      o.options.context.srcResolvedStat.size = o.options.context.srcStat.size = o.data.length;
+    }
   }
+  else if( !( o.srcProvider instanceof _.FileProvider.Imap ) )
+  {
+    _.assert( !o.dstProvider || o.dstProvider instanceof _.FileProvider.Imap, 'Expects provider Imap {-o.dstProvider-}.' );
+
+    let parsed = self.pathParse( o.options.srcPath );
+    if( !parsed.isTerminal )
+    {
+      o.data = BufferNode.from( read ).toString( 'base64' );
+      o.options.context.srcResolvedStat.size = o.options.context.srcStat.size = o.data.length;
+    }
+  }
+  else
+  {
+    _.assert( 0, 'Unknown instance of file provider {-o.srcProvider-}.' );
+  }
+
+  return o.data;
 }
 
 _fileCopyPrepare.defaults =
@@ -1184,6 +1204,7 @@ let Extension =
 
   fileRenameAct,
   fileCopyAct,
+  _fileCopyPrepare,
   softLinkAct,
   hardLinkAct,
 

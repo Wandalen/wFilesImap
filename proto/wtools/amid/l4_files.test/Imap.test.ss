@@ -218,7 +218,7 @@ data of text file
   var exp =
   {
     fileName : 'File.txt',
-    encoding : 'ascii',
+    encoding : '7bit',
     size : 17,
     data : 'data of text file',
   };
@@ -263,7 +263,7 @@ ZGF0YSBvZiB0ZXh0IGZpbGU=
   [
     {
       fileName : 'File.txt',
-      encoding : 'ascii',
+      encoding : '7bit',
       size : 17,
       data : 'data of text file',
     },
@@ -271,59 +271,7 @@ ZGF0YSBvZiB0ZXh0IGZpbGU=
       fileName : 'File2.txt',
       encoding : 'base64',
       size : 24,
-      data : 'ZGF0YSBvZiB0ZXh0IGZpbGU=',
-    },
-  ];
-  test.identical( got, exp );
-  providers.effective.fileDelete( '/read' );
-
-  /* */
-
-  test.case = 'multiple attachments, decode message';
-  var data =
-`From: user@domain.com
-To: user@domain.org
-Subject: some subject
-MIME-Version: 1.0
-Content-Type: multipart/alternate; boundary=__boundary__
-
---__boundary__
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-some text
-
---__boundary__
---__boundary__
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=File.txt
-
-data of text file
---__boundary__
---__boundary__
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=File2.txt
-
-ZGF0YSBvZiB0ZXh0IGZpbGU=
---__boundary__--
-`;
-  providers.effective.fileWrite( '/read/<$>', data );
-  var got = providers.effective.attachmentsGet({ filePath : '/read/<1>', decoding : 1, encoding : 'utf8' });
-  var exp =
-  [
-    {
-      fileName : 'File.txt',
-      encoding : 'utf8',
-      size : 17,
-      data : 'data of text file',
-    },
-    {
-      fileName : 'File2.txt',
-      encoding : 'utf8',
-      size : 17,
-      data : 'data of text file',
+      data : BufferNode.from( 'ZGF0YSBvZiB0ZXh0IGZpbGU=', 'base64' ),
     },
   ];
   test.identical( got, exp );

@@ -404,10 +404,27 @@ function attachmentsGet( o )
           let attachment = Object.create( null );
           attachment.fileName = result[ i ].disposition.params.filename;
           attachment.encoding = result[ i ].encoding;
+          if( attachment.encoding.toUpperCase() === '7BIT' )
+          attachment.encoding = 'ascii';
           attachment.size = result[ i ].size;
           attachment.data = attachmentDataGet( parsed.stripName, result[ i ].partID );
 
-          debugger;
+          if( o.decoding )
+          {
+            try
+            {
+              let data = dataDecode( attachment.data, o.encoding, attachment.encoding );
+
+              attachment.encoding = o.encoding;
+              attachment.size = data.length;
+              attachment.data = data;
+            }
+            catch( err )
+            {
+              _.errAttend( err );
+              throw _.err( err, 'Cannot convert data' );
+            }
+          }
 
           result[ i ] = attachment;
         }
@@ -447,12 +464,24 @@ function attachmentsGet( o )
     con.deasync();
     return con.sync();
   }
+
+  /* */
+
+  function dataDecode( data, dstEncoding, srcEncoding )
+  {
+    if( !BufferNode.isEncoding( srcEncoding ) )
+    srcEncoding = 'utf8';
+    return BufferNode.from( data, srcEncoding ).toString( dstEncoding );
+  }
 }
 
 attachmentsGet.defaults =
 {
   sync : 1,
   filePath : null,
+
+  decoding : 0,
+  encoding : 'utf8',
 };
 
 //

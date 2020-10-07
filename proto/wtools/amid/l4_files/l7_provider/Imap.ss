@@ -232,15 +232,27 @@ function fileReadAct( o )
   parsed.dirPath = path.unabsolute( parsed.dirPath );
 
   if( !parsed.isTerminal )
-  throw _.err( `${o.filePath} is not a terminal` );
+  throw _.err( `${ o.filePath } is not a terminal` );
+
+  // let attachments;
+  // if( o.advanced.withTail )
+  // attachments = self.attachmentsGet
+  // ({
+  //   filePath : o.filePath,
+  //   sync : 1,
+  // });
 
   ready.then( () => _read() );
   ready.then( () =>
   {
+    // if( o.advanced.withTail && attachments &&  attachments.length );
+    // result.attachments = attachments;
+
     if( o.encoding === 'map' )
     return result;
 
     let length = result.parts.length;
+    debugger;
     result = result.parts[ length - 1 ].body !== undefined ? result.parts[ length - 1 ].body : JSON.stringify( result );
 
     if( o.encoding === 'buffer.raw' )
@@ -338,12 +350,11 @@ function attachmentsGet( o )
 {
   let self = this;
   let path = self.path;
-  let ready = self.ready.split();
   let result = null;
+  let conWithdata;
 
   _.assert( arguments.length === 1, 'Expects single argument' );
   _.routineOptions( attachmentsGet, o );
-  o.advanced = _.routineOptions( null, o.advanced || Object.create( null ), fileReadAct.advanced );
 
   let parsed = self.pathParse( o.filePath );
   parsed.dirPath = path.unabsolute( parsed.dirPath );
@@ -351,128 +362,100 @@ function attachmentsGet( o )
   if( !parsed.isTerminal )
   throw _.err( `${ o.filePath } is not a terminal` );
 
-  ready.then( () => _attachmentsGet() );
-  ready.then( () =>
+  let message = messageWithPartsGet();
+  message.then( ( args ) =>
   {
-    debugger;
-    return result;
+    result = args[ 1 ];
+
+    let con = new _.Consequence().take( null );
+    for( let i = 0 ; i < args[ 1 ].length ; i++ )
+    {
+      con.then( () =>
+      {
+        conWithdata = new _.Consequence();
+        attachmentDataGet( args[ 0 ], args[ 1 ][ i ] );
+        return conWithdata;
+      })
+      .then( ( data ) =>
+      {
+        let attachment = Object.create( null );
+        attachment.fileName = result[ i ].disposition.params.filename;
+        attachment.encoding = result[ i ].encoding;
+        attachment.size = result[ i ].size;
+        attachment.data = data;
+
+        result[ i ] = attachment;
+        return data;
+      })
+    }
+
+    return con;
   });
+  message.then( () => result );
+
 
   if( o.sync )
   {
-    ready.deasync();
-    return ready.sync();
+    message.deasync();
+    return message.sync();
   }
 
-  return ready;
+  return message;
 
   /* */
 
-  function _attachmentsGet()
+  function messageWithPartsGet()
   {
-    let mailbox = self._pathDirNormalize( parsed.dirPath );
-    return self._connection.openBox( mailbox )
-    .then( ( extra ) =>
+    let ready = self.ready.split();
+    return ready.give( function()
     {
-      let searchCriteria = [ `${ parsed.stripName }` ];
-      let bodies = [ '' ];
+      let con = this;
 
-      let fetchOptions =
+      let mailbox = self._pathDirNormalize( parsed.dirPath );
+      self._connection.openBox( mailbox )
+      .then( ( extra ) =>
       {
-        bodies,
-        struct : !!o.advanced.structing,
-        markSeen : false,
-      };
+        let searchCriteria = [ `${ parsed.stripName }` ];
+        let bodies = [ '' ];
 
-      return self._connection.search( searchCriteria, fetchOptions )
-      .then( ( messages ) =>
-      {
-        _.assert( messages.length === 1, 'Expects single message.' );
-
-        let message = messages[ 0 ];
-        result = _.filter_( null, message.attributes.struct, ( e ) =>
+        let fetchOptions =
         {
-          if( _.arrayIs( e ) )
-          e = e[ 0 ];
-          if( e.disposition && e.disposition.type )
-          if( _.longHasAny( [ 'INLINE', 'ATTACHMENT' ], e.disposition.type.toUpperCase() ) )
-          return e;
-        });
+          bodies,
+          struct : true,
+          markSeen : false,
+        };
 
-        for( let i = 0 ; i < result.length ; i++ )
+        return self._connection.search( searchCriteria, fetchOptions )
+        .then( ( messages ) =>
         {
-          let attachment = Object.create( null );
-          attachment.fileName = result[ i ].disposition.params.filename;
-          attachment.encoding = result[ i ].encoding;
-          if( attachment.encoding.toUpperCase() === '7BIT' )
-          attachment.encoding = 'ascii';
-          attachment.size = result[ i ].size;
-          attachment.data = attachmentDataGet( parsed.stripName, result[ i ].partID );
+          _.assert( messages.length === 1, 'Expects single message.' );
 
-          if( o.decoding )
+          let message = messages[ 0 ];
+          let parts = _.filter_( null, message.attributes.struct, ( e ) =>
           {
-            try
-            {
-              let data = dataDecode( attachment.data, o.encoding, attachment.encoding );
+            if( _.arrayIs( e ) )
+            e = e[ 0 ];
+            if( e.disposition && e.disposition.type )
+            if( _.longHasAny( [ 'INLINE', 'ATTACHMENT' ], e.disposition.type.toUpperCase() ) )
+            return e;
+          });
 
-              attachment.encoding = o.encoding;
-              attachment.size = data.length;
-              attachment.data = data;
-            }
-            catch( err )
-            {
-              _.errAttend( err );
-              throw _.err( err, 'Cannot convert data' );
-            }
-          }
+          con.take( [ message, parts ] );
 
-          result[ i ] = attachment;
-        }
+        })
       })
+
     })
   }
 
   /* */
 
-  function attachmentDataGet( messageId, partId )
+  function attachmentDataGet( message, part )
   {
-    let result = '';
-    let con = new _.Consequence();
-
-    let o =
-    {
-      bodies : [ partId ],
-      struct : true,
-    };
-
-    let data = self._connection.imap.fetch( messageId, o );
-    data.on( 'message', ( message, seqNo ) =>
-    {
-      message.on( 'body', ( stream, info ) =>
-      {
-        stream.on( 'data', ( chunk ) =>
-        {
-          result += chunk.toString( 'utf8' );
-        });
-        stream.once( 'end', () =>
-        {
-          con.take( result );
-        });
-      });
-    });
-
-    con.deasync();
-    return con.sync();
+    self._connection.getPartData( message, part )
+    .then( ( data ) => conWithdata.take( data ) );
   }
 
-  /* */
-
-  function dataDecode( data, dstEncoding, srcEncoding )
-  {
-    if( !BufferNode.isEncoding( srcEncoding ) )
-    srcEncoding = 'utf8';
-    return BufferNode.from( data, srcEncoding ).toString( dstEncoding );
-  }
 }
 
 attachmentsGet.defaults =

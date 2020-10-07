@@ -183,6 +183,57 @@ function fileRead( test )
 
 //
 
+function attachmentsGet( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  /* */
+
+  test.case = 'read existed file, encoding - map';
+  var data =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=file.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/read/<$>', data );
+  var got = providers.effective.attachmentsGet({ filePath : '/read/<1>' });
+  var exp =
+  {
+    fileName : 'file.txt',
+    encoding : '7bit',
+    size : 17,
+    data : 'data of text file',
+  };
+  test.identical( got, exp );
+
+  /* */
+
+  providers.effective.fileDelete( '/read' );
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
+//
+
 function statRead( test )
 {
   let context = this;
@@ -1397,6 +1448,7 @@ var Proto =
 
     dirRead,
     fileRead,
+    attachmentsGet,
     statRead,
     fileExists,
 

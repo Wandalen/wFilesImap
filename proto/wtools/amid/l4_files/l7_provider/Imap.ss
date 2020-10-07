@@ -334,6 +334,129 @@ fileReadAct.advanced =
 
 //
 
+function attachmentsGet( o )
+{
+  let self = this;
+  let path = self.path;
+  let ready = self.ready.split();
+  let result = null;
+
+  _.assert( arguments.length === 1, 'Expects single argument' );
+  _.routineOptions( attachmentsGet, o );
+  o.advanced = _.routineOptions( null, o.advanced || Object.create( null ), fileReadAct.advanced );
+
+  let parsed = self.pathParse( o.filePath );
+  parsed.dirPath = path.unabsolute( parsed.dirPath );
+
+  if( !parsed.isTerminal )
+  throw _.err( `${ o.filePath } is not a terminal` );
+
+  ready.then( () => _attachmentsGet() );
+  ready.then( () =>
+  {
+    debugger;
+    return result;
+  });
+
+  if( o.sync )
+  {
+    ready.deasync();
+    return ready.sync();
+  }
+
+  return ready;
+
+  /* */
+
+  function _attachmentsGet()
+  {
+    let mailbox = self._pathDirNormalize( parsed.dirPath );
+    return self._connection.openBox( mailbox )
+    .then( ( extra ) =>
+    {
+      let searchCriteria = [ `${ parsed.stripName }` ];
+      let bodies = [ '' ];
+
+      let fetchOptions =
+      {
+        bodies,
+        struct : !!o.advanced.structing,
+        markSeen : false,
+      };
+
+      return self._connection.search( searchCriteria, fetchOptions )
+      .then( ( messages ) =>
+      {
+        _.assert( messages.length === 1, 'Expects single message.' );
+
+        let message = messages[ 0 ];
+        result = _.filter_( null, message.attributes.struct, ( e ) =>
+        {
+          if( _.arrayIs( e ) )
+          e = e[ 0 ];
+          if( e.disposition && e.disposition.type )
+          if( _.longHasAny( [ 'INLINE', 'ATTACHMENT' ], e.disposition.type.toUpperCase() ) )
+          return e;
+        });
+
+        for( let i = 0 ; i < result.length ; i++ )
+        {
+          let attachment = Object.create( null );
+          attachment.fileName = result[ i ].disposition.params.filename;
+          attachment.encoding = result[ i ].encoding;
+          attachment.size = result[ i ].size;
+          attachment.data = attachmentDataGet( parsed.stripName, result[ i ].partID );
+
+          debugger;
+
+          result[ i ] = attachment;
+        }
+      })
+    })
+  }
+
+  /* */
+
+  function attachmentDataGet( messageId, partId )
+  {
+    let result = '';
+    let con = new _.Consequence();
+
+    let o =
+    {
+      bodies : [ partId ],
+      struct : true,
+    };
+
+    let data = self._connection.imap.fetch( messageId, o );
+    data.on( 'message', ( message, seqNo ) =>
+    {
+      message.on( 'body', ( stream, info ) =>
+      {
+        stream.on( 'data', ( chunk ) =>
+        {
+          result += chunk.toString( 'utf8' );
+        });
+        stream.once( 'end', () =>
+        {
+          con.take( result );
+        });
+      });
+    });
+
+    con.deasync();
+    return con.sync();
+  }
+}
+
+attachmentsGet.defaults =
+{
+  sync : 1,
+  filePath : null,
+};
+
+//
+
 function dirReadAct( o )
 {
   let self = this;
@@ -878,7 +1001,7 @@ function fileRenameAct( o )
     if( srcParsed.isTerminal )
     return ready.error( _.err( '{-o.srcPath-} should be path to directory.' ) );
     if( _.longHas( [ '.', 'Drafts', 'INBOX', 'Junk', 'Sent', 'Trash' ], srcParsed.unabsolutePath ) )
-    return con.error( _.err( 'Unable to rename builtin directory.' ) );
+    return ready.error( _.err( 'Unable to rename builtin directory.' ) );
     let dstParsed = self.pathParse( o.dstPath );
     if( dstParsed.isTerminal )
     return ready.error( _.err( '{-o.dstPath-} should be path to directory.' ) );
@@ -986,7 +1109,7 @@ function _fileCopyPrepare( o )
   _.assert( arguments.length === 1, 'Expects single options map {-o-}.' );
   _.routineOptions( _fileCopyPrepare, o );
 
-  let read = o.srcProvider.system.fileRead( o.options.srcPath, 'utf8' );
+  let read = o.srcProvider.system.fileRead({ filePath : o.options.srcPath, encoding : 'utf8', sync : 1 });
 
   if( o.srcProvider instanceof _.FileProvider.Imap || !o.srcProvider )
   {
@@ -1187,6 +1310,7 @@ let Extension =
   // read
 
   fileReadAct,
+  attachmentsGet,
   dirReadAct,
   streamReadAct : null,
   statReadAct,

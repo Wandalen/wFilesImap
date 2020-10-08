@@ -445,39 +445,7 @@ function attachmentsGet( o )
 
           /* */
 
-          let con2 = new _.Consequence().take( null );
-          for( let i = 0 ; i < result.length ; i++ )
-          {
-            con2.then( () =>
-            {
-              conWithdata = new _.Consequence();
-              attachmentDataGet( message, result[ i ] );
-              return conWithdata;
-            })
-            .then( ( data ) =>
-            {
-              let attachment = Object.create( null );
-              attachment.fileName = result[ i ].disposition.params.filename;
-
-              if( o.decoding )
-              {
-                data = BufferNode.from( data ).toString( o.encoding );
-                attachment.encoding = o.encoding;
-                attachment.size = data.length;
-              }
-              else
-              {
-                attachment.encoding = result[ i ].encoding;
-                attachment.size = result[ i ].size;
-              }
-
-              attachment.data = data;
-
-              result[ i ] = attachment;
-              return data;
-            })
-          }
-
+          let con2 = replacePartsByAttachments( result, message );
           con.take( con2 );
 
         })
@@ -493,10 +461,57 @@ function attachmentsGet( o )
 
   /* */
 
+  function replacePartsByAttachments( parts, message )
+  {
+    let con = new _.Consequence().take( null );
+    for( let i = 0 ; i < parts.length ; i++ )
+    {
+      con.then( () =>
+      {
+        conWithdata = new _.Consequence();
+        attachmentDataGet( message, parts[ i ] );
+        return conWithdata;
+      })
+      .then( ( data ) =>
+      {
+        let attachment = Object.create( null );
+        attachment.fileName = parts[ i ].disposition.params.filename;
+
+        if( o.decoding )
+        {
+          data = dataDecode( data, o.encoding );
+          attachment.encoding = o.encoding;
+          attachment.size = data.length;
+        }
+        else
+        {
+          attachment.encoding = parts[ i ].encoding;
+          attachment.size = parts[ i ].size;
+        }
+
+        attachment.data = data;
+
+        parts[ i ] = attachment;
+        return data;
+      })
+    }
+
+    return con;
+  }
+
+  /* */
+
   function attachmentDataGet( message, part )
   {
     self._connection.getPartData( message, part )
     .then( ( data ) => conWithdata.take( data ) );
+  }
+
+  /* */
+
+  function dataDecode( data, encoding )
+  {
+    return BufferNode.from( data ).toString( encoding );
   }
 
 }

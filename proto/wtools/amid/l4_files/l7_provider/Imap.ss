@@ -511,6 +511,7 @@ function attachmentsGet( o )
 
   function dataDecode( data, encoding )
   {
+    _.assert( BufferNode.isEncoding( encoding ), 'Unknown encoding' );
     return BufferNode.from( data ).toString( encoding );
   }
 

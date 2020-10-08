@@ -234,26 +234,46 @@ function fileReadAct( o )
   if( !parsed.isTerminal )
   throw _.err( `${ o.filePath } is not a terminal` );
 
-  // let attachments;
-  // if( o.advanced.withTail )
-  // attachments = self.attachmentsGet
-  // ({
-  //   filePath : o.filePath,
-  //   sync : 1,
-  // });
+  let attachments;
+  if( o.advanced.withTail )
+  attachments = self.attachmentsGet
+  ({
+    filePath : o.filePath,
+    sync : 1,
+  });
 
   ready.then( () => _read() );
   ready.then( () =>
   {
-    // if( o.advanced.withTail && attachments &&  attachments.length );
-    // result.attachments = attachments;
+    if( o.advanced.withTail && attachments &&  attachments.length > 0 );
+    result.attachments = attachments;
 
     if( o.encoding === 'map' )
     return result;
 
-    let length = result.parts.length;
-    debugger;
-    result = result.parts[ length - 1 ].body !== undefined ? result.parts[ length - 1 ].body : JSON.stringify( result );
+    if( o.advanced.withHeader && o.advanced.withBody && o.advanced.withTail )
+    {
+      result = result.parts[ result.parts.length - 1 ].body;
+    }
+    else
+    {
+      let message = '';
+      if( o.advanced.withHeader )
+      {
+        message += JSON.stringify( result.header );
+      }
+      if( o.advanced.withBody )
+      {
+        let bodyArray = result.parts.filter( ( e ) => e.which === 'TEXT' );
+        message += JSON.stringify( bodyArray.body );
+      }
+      if( o.advanced.withTail )
+      {
+        message += JSON.stringify( result.attachments );
+      }
+
+      result = message;
+    }
 
     if( o.encoding === 'buffer.raw' )
     {
@@ -297,7 +317,7 @@ function fileReadAct( o )
       bodies.push( 'HEADER' );
       if( o.advanced.withBody )
       bodies.push( 'TEXT' );
-      if( o.advanced.withTail )
+      // if( o.advanced.withTail )
       bodies.push( '' );
 
       let fetchOptions =
@@ -362,56 +382,31 @@ function attachmentsGet( o )
   if( !parsed.isTerminal )
   throw _.err( `${ o.filePath } is not a terminal` );
 
-  let message = messageWithPartsGet();
-  message.then( ( args ) =>
-  {
-    result = args[ 1 ];
-
-    let con = new _.Consequence().take( null );
-    for( let i = 0 ; i < args[ 1 ].length ; i++ )
-    {
-      con.then( () =>
-      {
-        conWithdata = new _.Consequence();
-        attachmentDataGet( args[ 0 ], args[ 1 ][ i ] );
-        return conWithdata;
-      })
-      .then( ( data ) =>
-      {
-        let attachment = Object.create( null );
-        attachment.fileName = result[ i ].disposition.params.filename;
-        attachment.encoding = result[ i ].encoding;
-        attachment.size = result[ i ].size;
-        attachment.data = data;
-
-        result[ i ] = attachment;
-        return data;
-      })
-    }
-
-    return con;
-  });
-  message.then( () => result );
-
+  let ready = _attachmentsGet();
+  ready.then( () => result );
 
   if( o.sync )
   {
-    message.deasync();
-    return message.sync();
+    ready.deasync();
+    return ready.sync();
   }
 
-  return message;
+  return ready;
 
   /* */
 
-  function messageWithPartsGet()
+  function _attachmentsGet()
   {
     let ready = self.ready.split();
+    let mailbox = self._pathDirNormalize( parsed.dirPath );
+
+    if( !self.fileExists( o.filePath ) )
+    return ready.take( null );
+
     return ready.give( function()
     {
       let con = this;
 
-      let mailbox = self._pathDirNormalize( parsed.dirPath );
       self._connection.openBox( mailbox )
       .then( ( extra ) =>
       {
@@ -431,7 +426,7 @@ function attachmentsGet( o )
           _.assert( messages.length === 1, 'Expects single message.' );
 
           let message = messages[ 0 ];
-          let parts = _.filter_( null, message.attributes.struct, ( e ) =>
+          result = _.filter_( null, message.attributes.struct, ( e ) =>
           {
             if( _.arrayIs( e ) )
             e = e[ 0 ];
@@ -440,12 +435,41 @@ function attachmentsGet( o )
             return e;
           });
 
-          con.take( [ message, parts ] );
+          /* */
+
+          let con2 = new _.Consequence().take( null );
+          for( let i = 0 ; i < result.length ; i++ )
+          {
+            con2.then( () =>
+            {
+              conWithdata = new _.Consequence();
+              attachmentDataGet( message, result[ i ] );
+              return conWithdata;
+            })
+            .then( ( data ) =>
+            {
+              let attachment = Object.create( null );
+              attachment.fileName = result[ i ].disposition.params.filename;
+              attachment.encoding = result[ i ].encoding;
+              attachment.size = result[ i ].size;
+              attachment.data = data;
+
+              result[ i ] = attachment;
+              return data;
+            })
+          }
+
+          con.take( con2 );
 
         })
       })
 
     })
+    .then( () =>
+    {
+      self._connection.closeBox( mailbox );
+      return null;
+    });
   }
 
   /* */
@@ -617,7 +641,7 @@ function statReadAct( o )
       {
         withHeader : 1,
         withBody : 0,
-        withTail : 1,
+        withTail : 0,
         structing : 0,
       }
       let o2 = _.mapSupplement( { filePath : o.filePath, advanced, throwing, sync, encoding : 'map' }, self.fileReadAct.defaults );

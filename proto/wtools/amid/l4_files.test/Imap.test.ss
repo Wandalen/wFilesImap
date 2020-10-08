@@ -150,19 +150,22 @@ function fileRead( test )
   test.case = 'read existed file, encoding - map';
   providers.effective.fileWrite( '/read/<$>', 'data' );
   var got = providers.effective.fileRead({ filePath : '/read/<1>', encoding : 'map' });
-  var exp = [ 'attributes', 'parts', 'seqNo', 'header' ];
+  var exp = [ 'attributes', 'parts', 'seqNo', 'header', 'attachments' ];
   test.identical( _.mapKeys( got ), exp );
+  providers.effective.filesDelete( '/read' );
 
   test.case = 'read existed file, encoding - utf8';
   providers.effective.fileWrite( '/read/<$>', 'data' );
   var got = providers.effective.fileRead( '/read/<1>' );
   var exp = 'data';
   test.identical( got, exp );
+  providers.effective.filesDelete( '/read' );
 
   test.case = 'read not existed file, throwing - 0';
   var got = providers.effective.fileRead({ filePath : '/read/<999>', throwing : 0 });
   var exp = null;
   test.identical( got, exp );
+  providers.effective.filesDelete( '/read' );
 
   /* */
 
@@ -170,10 +173,6 @@ function fileRead( test )
   var got = providers.effective.fileRead({ filePath : '/hrx', throwing : 0 });
   var exp = null;
   test.identical( got, exp );
-
-  /* */
-
-  providers.effective.fileDelete( '/read' );
 
   /* */
 

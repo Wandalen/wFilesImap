@@ -822,7 +822,7 @@ function fileWriteAct( o )
   _.assertRoutineOptions( fileWriteAct, o );
   _.assert( self.path.isNormalized( o.filePath ) );
   _.assert( self.WriteMode.indexOf( o.writeMode ) !== -1 );
-  o.advanced = _.routineOptions( null, o.advanced || Object.create( null ), fileReadAct.advanced );
+  o.advanced = _.routineOptions( null, o.advanced || Object.create( null ), fileWriteAct.advanced );
 
   /* data conversion */
 
@@ -864,12 +864,12 @@ function fileWriteAct( o )
         let o2 = Object.create( null );
         o2.mailbox = mailbox;
         if( o.advanced.flag !== null )
-        o2.flag = o.advanced.flag;
+        o2.flags = o.advanced.flags;
 
         self._connection.append( o.data, o2 )
         .then( ( etra ) =>
         {
-          con.take( null );
+          con.take( true );
         })
         .catch( ( err ) =>
         {
@@ -887,7 +887,7 @@ function fileWriteAct( o )
 
 fileWriteAct.advanced =
 {
-  flag : null,
+  flags : null,
 };
 
 _.routineExtend( fileWriteAct, Parent.prototype.fileWriteAct );

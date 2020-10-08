@@ -696,6 +696,7 @@ function statRead( test )
   test.case = 'stat of existed file';
   providers.effective.fileWrite( '/stat/<$>', 'data' );
   var got = providers.effective.statRead( '/stat/<1>' );
+  test.identical( got.size, 4 );
   test.identical( got.isFile(), true );
   test.identical( got.isDir(), false );
   test.identical( got.isDirectory(), false );
@@ -703,6 +704,7 @@ function statRead( test )
   test.case = 'stat of existed nested directory';
   providers.effective.dirMake( '/stat/1-new' );
   var got = providers.effective.statRead( '/stat/1-new' );
+  test.identical( got.size, null );
   test.identical( got.isFile(), false );
   test.identical( got.isDir(), true );
   test.identical( got.isDirectory(), true );
@@ -720,8 +722,6 @@ function statRead( test )
   /* */
 
   providers.effective.fileDelete( '/stat' );
-
-  /* */
 
   providers.effective.ready.finally( () => providers.effective.unform() );
   return providers.effective.ready;
@@ -770,15 +770,73 @@ function fileWrite( test )
   /* */
 
   test.case = 'write file in existed directory';
-  providers.effective.fileWrite( '/Drafts/<$>', 'data' );
-  var got = providers.effective.dirRead( '/Drafts' );
+  providers.effective.dirMake( '/write' );
+  providers.effective.fileWrite( '/write/<$>', 'data' );
+  var got = providers.effective.dirRead( '/write' );
   test.is( _.longHas( got, '<1>' ) );
+  providers.effective.filesDelete( '/write' );
 
   test.case = 'write file in not existed directory';
   providers.effective.fileWrite( '/write/<$>', 'data' );
   var got = providers.effective.dirRead( '/write' );
   test.is( _.longHas( got, '<1>' ) );
-  providers.effective.fileDelete( '/write' );
+  providers.effective.filesDelete( '/write' );
+
+  test.case = 'write file with flags, string';
+  var data =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=File.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite({ filePath : '/write/<$>', data : data, advanced : { flags : 'Seen' } });
+  var got = providers.effective.fileRead( '/write/<1>', 'map' );
+  test.identical( got.attributes.flags, [ '\\Seen' ] );
+  providers.effective.filesDelete( '/write' );
+
+  test.case = 'write file with flags, array';
+  var data =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=File.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite({ filePath : '/write/<$>', data : data, advanced : { flags : [ 'Seen', 'Flagged' ] } });
+  var got = providers.effective.fileRead( '/write/<1>', 'map' );
+  test.identical( got.attributes.flags, [ '\\Flagged', '\\Seen' ] );
+  providers.effective.filesDelete( '/write' );
 
   /* */
 

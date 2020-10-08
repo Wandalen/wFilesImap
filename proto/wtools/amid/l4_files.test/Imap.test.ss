@@ -148,17 +148,61 @@ function fileRead( test )
   /* */
 
   test.case = 'read existed file, encoding - map';
-  providers.effective.fileWrite( '/read/<$>', 'data' );
+  var data =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=File.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/read/<$>', data );
   var got = providers.effective.fileRead({ filePath : '/read/<1>', encoding : 'map' });
   var exp = [ 'attributes', 'parts', 'seqNo', 'header', 'attachments' ];
   test.identical( _.mapKeys( got ), exp );
   providers.effective.filesDelete( '/read' );
 
   test.case = 'read existed file, encoding - utf8';
-  providers.effective.fileWrite( '/read/<$>', 'data' );
+  var data =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=File.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/read/<$>', data );
   var got = providers.effective.fileRead( '/read/<1>' );
-  var exp = 'data';
-  test.identical( got, exp );
+  var exp = data;
+  test.equivalent( got, exp );
   providers.effective.filesDelete( '/read' );
 
   test.case = 'read not existed file, throwing - 0';
@@ -173,6 +217,274 @@ function fileRead( test )
   var got = providers.effective.fileRead({ filePath : '/hrx', throwing : 0 });
   var exp = null;
   test.identical( got, exp );
+
+  /* */
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
+//
+
+function fileReadWithOptionsAdvanced( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  /* */
+
+  test.case = 'advanced.structing - 0';
+  var data =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=File.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/read/<$>', data );
+  var advanced = { structing : 0 };
+  var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'map' });
+  var exp = [ 'attributes', 'parts', 'seqNo', 'header', 'attachments' ];
+  test.identical( _.mapKeys( got ), exp );
+  test.is( !( 'struct' in got.attributes ) );
+  test.is( 'uid' in got.attributes );
+  providers.effective.filesDelete( '/read' );
+
+  /* */
+
+  test.case = 'withHeader - 0, encoding - map';
+  var data =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=File.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/read/<$>', data );
+  var advanced = { withHeader : 0 };
+  var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'map' });
+  var exp = [ 'attributes', 'parts', 'seqNo', 'attachments' ];
+  test.identical( _.mapKeys( got ), exp );
+  providers.effective.filesDelete( '/read' );
+
+  /* */
+
+  test.case = 'withHeader - 0, encoding - utf8';
+  var data =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=File.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/read/<$>', data );
+  var advanced = { withHeader : 0 };
+  var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'utf8' });
+  var exp =
+`{
+"body" : "--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit\\r\\n\\r\\nsome text\\r\\n\\r\\n--__boundary__\\r\\n--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit\\r\\nContent-Disposition: attachment; filename=File.txt\\r\\n\\r\\ndata of text file\\r\\n--__boundary__--\\r\\n",
+"attachments" : [
+{
+"fileName" : "File.txt",
+"encoding" : "utf8",
+"size" : 17,
+"data" : "data of text file"
+}
+]
+}`;
+  test.equivalent( got, exp );
+  providers.effective.filesDelete( '/read' );
+
+  /* */
+
+  test.case = 'withBody - 0, encoding - utf8';
+  var data =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=File.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/read/<$>', data );
+  var advanced = { withBody : 0 };
+  var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'utf8' });
+  var exp =
+`{
+"header" : {
+"from" : [ "user@domain.com" ],
+"to" : [ "user@domain.org" ],
+"subject" : [ "some subject" ],
+"mime-version" : [ "1.0" ],
+"content-type" :
+[
+"multipart/alternate; boundary=__boundary__"
+]
+},
+"attachments" : [
+{
+"fileName" : "File.txt",
+"encoding" : "utf8",
+"size" : 17,
+"data" : "data of text file"
+}
+]
+}`;
+  test.equivalent( got, exp );
+  providers.effective.filesDelete( '/read' );
+
+  /* */
+
+  test.case = 'withTail - 0, encoding - utf8';
+  var data =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=File.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/read/<$>', data );
+  var advanced = { withTail : 0 };
+  var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'utf8' });
+  var exp =
+`{
+"header" : {
+"from" : [ "user@domain.com" ],
+"to" : [ "user@domain.org" ],
+"subject" : [ "some subject" ],
+"mime-version" : [ "1.0" ],
+"content-type" :
+[
+"multipart/alternate; boundary=__boundary__"
+]
+},
+"body" : "--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit\\r\\n\\r\\nsome text\\r\\n\\r\\n--__boundary__\\r\\n--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit\\r\\nContent-Disposition: attachment; filename=File.txt\\r\\n\\r\\ndata of text file\\r\\n--__boundary__--\\r\\n"
+}`;
+  test.equivalent( got, exp );
+  providers.effective.filesDelete( '/read' );
+
+  /* */
+
+  test.case = 'only withTail, structing - 0, encoding - utf8';
+  var data =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=File.txt
+
+c29tZSB0ZXh0
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=File2.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/read/<$>', data );
+  var advanced = { withHeader : 0, withBody : 0, structing : 0 };
+  var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'utf8' });
+  var exp =
+`{
+"attachments" : [
+{
+"fileName" : "File.txt",
+"encoding" : "utf8",
+"size" : 9,
+"data" : "some text"
+},
+{
+"fileName" : "File2.txt",
+"encoding" : "utf8",
+"size" : 17,
+"data" : "data of text file"
+}
+]
+}`;
+  test.equivalent( got, exp );
+  providers.effective.filesDelete( '/read' );
 
   /* */
 
@@ -1497,7 +1809,10 @@ var Proto =
     login,
 
     dirRead,
+
     fileRead,
+    fileReadWithOptionsAdvanced,
+
     attachmentsGet,
     statRead,
     fileExists,

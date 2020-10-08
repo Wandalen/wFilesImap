@@ -239,6 +239,7 @@ function fileReadAct( o )
   attachments = self.attachmentsGet
   ({
     filePath : o.filePath,
+    decoding : 1,
     sync : 1,
   });
 
@@ -257,20 +258,27 @@ function fileReadAct( o )
     }
     else
     {
-      let message = '';
+      let message = '{\n';
       if( o.advanced.withHeader )
       {
-        message += JSON.stringify( result.header );
+        if( _.mapKeys( result.header ).length > 0 )
+        message += '"header" : ' + _.toJson( result.header ) + ',\n';
       }
       if( o.advanced.withBody )
       {
         let bodyArray = result.parts.filter( ( e ) => e.which === 'TEXT' );
-        message += JSON.stringify( bodyArray.body );
+        if( bodyArray[ 0 ].body )
+        message += '"body" : ' + _.toJson( bodyArray[ 0 ].body ) + ',\n';
       }
       if( o.advanced.withTail )
       {
-        message += JSON.stringify( result.attachments );
+        if( result.attachments.length > 0 )
+        message += '"attachments" : ' + _.toJson( result.attachments ) + '\n';
       }
+
+      if( _.strEnds( message, ',\n' ) )
+      message = _.strReplaceEnd( message, ',\n', '\n' );
+      message += '}';
 
       result = message;
     }
@@ -450,8 +458,19 @@ function attachmentsGet( o )
             {
               let attachment = Object.create( null );
               attachment.fileName = result[ i ].disposition.params.filename;
-              attachment.encoding = result[ i ].encoding;
-              attachment.size = result[ i ].size;
+
+              if( o.decoding )
+              {
+                data = BufferNode.from( data ).toString( o.encoding );
+                attachment.encoding = o.encoding;
+                attachment.size = data.length;
+              }
+              else
+              {
+                attachment.encoding = result[ i ].encoding;
+                attachment.size = result[ i ].size;
+              }
+
               attachment.data = data;
 
               result[ i ] = attachment;

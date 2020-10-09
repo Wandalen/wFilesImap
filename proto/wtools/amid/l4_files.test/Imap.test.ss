@@ -1421,7 +1421,7 @@ function filesReflectFromHdToImapSingle( test )
   + 'Subject: some subjectg\r\n'
   + 'MIME-Version: 1.0\r\n'
   + '\r\n'
-  + 'Content-Type: multipart/alternate; boundary=__boundary__'
+  + 'Content-Type: multipart/alternate; boundary=__boundary__\r\n'
   + '\r\n'
   + '--__boundary__\r\n'
   + 'Content-Type: text/plain; charset=UTF-8\r\n'
@@ -1440,6 +1440,7 @@ function filesReflectFromHdToImapSingle( test )
   + '\r\n';
   var srcPath = a.abs( '<1>' );
   providers.hd.fileWrite( srcPath, src );
+  debugger;
   providers.system.filesReflect
   ({
     reflectMap : { [ srcPath ] : '/dst/<$>' },
@@ -1447,7 +1448,7 @@ function filesReflectFromHdToImapSingle( test )
     dst : { effectiveProvider : providers.effective },
   });
   var got = providers.effective.fileRead( '/dst/<1>' );
-  test.equivalent( got, src );
+  test.identical( got, src );
   providers.effective.fileDelete( '/dst' );
 
   /* */
@@ -1608,6 +1609,49 @@ function filesReflectBothSidesSingleFile( test )
   test.identical( got, providers.effective.fileRead( '/src/<1>', 'base64' ) );
   test.identical( got, providers.hd.fileRead( a.abs( 'File.txt' ) ) );
   providers.effective.fileDelete( '/src' );
+
+  /* */
+
+  test.case = 'reflect multiline file from imap to hd and back';
+  var src =
+`From: user@domain.com
+To: user@domain.org
+Subject: some subject
+MIME-Version: 1.0
+Content-Type: multipart/alternate; boundary=__boundary__
+
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+some text
+
+--__boundary__
+--__boundary__
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=file.txt
+
+data of text file
+--__boundary__--
+`;
+  providers.effective.fileWrite( '/src/<$>', src );
+  providers.system.filesReflect
+  ({
+    reflectMap : { '/src/<1>' : a.abs( '<1>' ) },
+    src : { effectiveProvider : providers.effective },
+    dst : { effectiveProvider : providers.hd },
+  });
+  providers.system.filesReflect
+  ({
+    reflectMap : { [ a.abs( '<1>' ) ] : '/src/<$>' },
+    src : { effectiveProvider : providers.hd },
+    dst : { effectiveProvider : providers.effective },
+  });
+  var got = providers.effective.fileRead( '/src/<2>' );
+  var exp = providers.effective.fileRead( '/src/<1>' );
+  test.identical( got, exp );
+  providers.effective.filesDelete( '/src' );
 
   /* */
 

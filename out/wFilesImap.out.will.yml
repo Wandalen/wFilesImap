@@ -167,7 +167,6 @@ module:
           - ../proto/wtools/amid/l4_files.test/Imap.test.ss
           - ../proto/wtools/amid/l4_files.test/_asset
           - ../proto/wtools/amid/l4_files.test/_asset/basic
-          - ../proto/wtools/amid/l4_files.test/_asset/basic/File.png
           - ../proto/wtools/amid/l4_files.test/_asset/basic/File.txt
           - ../proto/wtools/amid/l4_files.test/_asset/basic/File.xml
           - ../proto/wtools/atop

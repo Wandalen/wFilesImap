@@ -325,13 +325,13 @@ data of text file
   providers.effective.fileWrite( '/read/<$>', data );
   var advanced = { withHeader : 0 };
   var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'utf8' });
-  var str = `"body" : "--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit`
+  var body = `"body" : "--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit`
   + `\\r\\n\\r\\nsome text\\r\\n\\r\\n--__boundary__\\r\\n--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8`
   + `\\r\\nContent-Transfer-Encoding: 7bit\\r\\nContent-Disposition: attachment; filename=File.txt\\r\\n\\r\\ndata of text file`
-  + `\\r\\n--__boundary__--\\r\\n",`;
+  + `\\r\\n--__boundary__--\\r\\n"`;
   var exp =
 `{
-${ str }
+${ body },
 "attachments" : [
 {
 "fileName" : "File.txt",
@@ -424,7 +424,7 @@ data of text file
   providers.effective.fileWrite( '/read/<$>', data );
   var advanced = { withTail : 0 };
   var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'utf8' });
-  var str = `"body" : "--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit`
+  var body = `"body" : "--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit`
   + `\\r\\n\\r\\nsome text\\r\\n\\r\\n--__boundary__\\r\\n--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8`
   + `\\r\\nContent-Transfer-Encoding: 7bit\\r\\nContent-Disposition: attachment; filename=File.txt\\r\\n\\r\\ndata of text file`
   + `\\r\\n--__boundary__--\\r\\n"`;
@@ -440,7 +440,7 @@ data of text file
 "multipart/alternate; boundary=__boundary__"
 ]
 },
-${ str }
+${ body }
 }`;
   test.equivalent( got, exp );
   providers.effective.filesDelete( '/read' );

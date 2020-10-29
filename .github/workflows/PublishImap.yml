@@ -21,8 +21,8 @@ jobs :
     - run : git config --global user.name "Testing"
     - uses : actions/checkout@v2
     - run : wget https://raw.githubusercontent.com/tomav/docker-mailserver/master/docker-compose.yml
-    - run : wget https://raw.githubusercontent.com/tomav/docker-mailserver/master/env-mailserver
-    - run : curl -o .env https://raw.githubusercontent.com/tomav/docker-mailserver/master/template.env
+    - run : wget https://raw.githubusercontent.com/tomav/docker-mailserver/master/mailserver.env
+    - run : curl -o .env https://raw.githubusercontent.com/tomav/docker-mailserver/master/compose.env
     - run : docker-compose up -d mail
     - run : docker exec mail addmailuser user@domain password
     - name : ${{ matrix.node-version }}

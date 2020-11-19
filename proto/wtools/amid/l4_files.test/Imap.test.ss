@@ -1134,7 +1134,7 @@ function fileCopy( test )
   let context = this;
   let providers = context.providerMake();
 
-  providers.effective.fileWrite( '/src1/<$>', 'data' );
+  providers.effective.fileWrite( '/src/<$>', 'data' );
 
   /* */
 
@@ -1143,8 +1143,7 @@ function fileCopy( test )
   var got = providers.effective.dirRead( '/dst' );
   test.identical( got, [] );
 
-  debugger;
-  providers.effective.fileCopy( '/dst/<$>', '/src1/<1>' );
+  providers.effective.fileCopy( '/dst/<$>', '/src/<1>' );
   var got = providers.effective.dirRead( '/dst' );
   test.identical( got, [ '<1>' ] );
   providers.effective.fileDelete( '/dst' );
@@ -1156,7 +1155,7 @@ function fileCopy( test )
   var got = providers.effective.dirRead( '/dst' );
   test.identical( got, [ '<1>' ] );
 
-  providers.effective.fileCopy( '/dst/<$>', '/src1/<1>' );
+  providers.effective.fileCopy( '/dst/<$>', '/src/<1>' );
   var got = providers.effective.dirRead( '/dst' );
   test.identical( got, [ '<1>', '<2>' ] );
   providers.effective.fileDelete( '/dst' );
@@ -1167,22 +1166,22 @@ function fileCopy( test )
   var got = providers.effective.dirRead( '/' );
   test.isNot( _.longHas( got, 'dst' ) );
 
-  providers.effective.fileCopy({ dstPath : '/dst/<$>', src1Path : '/src/<1>', makingDirectory : 1 });
+  providers.effective.fileCopy({ dstPath : '/dst/<$>', srcPath : '/src/<1>', makingDirectory : 1 });
   var got = providers.effective.dirRead( '/dst' );
   test.identical( got, [ '<1>' ] );
   providers.effective.fileDelete( '/dst' );
 
   /* */
 
-  test.case = 'src1 file does not exist, should throw error';
-  test.shouldThrowErrorSync( () => providers.effective.fileCopy( '/dst/<$>', '/src1/<999>' ) );
+  test.case = 'src file does not exist, should throw error';
+  test.shouldThrowErrorSync( () => providers.effective.fileCopy( '/dst/<$>', '/src/<999>' ) );
 
   test.case = 'copy file into not existed directory, makingDirectory - 0, should throw error';
-  test.shouldThrowErrorSync( () => providers.effective.fileCopy( '/dst/<$>', '/src1/<1>' ) );
+  test.shouldThrowErrorSync( () => providers.effective.fileCopy( '/dst/<$>', '/src/<1>' ) );
 
   /* */
 
-  providers.effective.fileDelete( '/src1' );
+  providers.effective.fileDelete( '/src' );
 
   providers.effective.ready.finally( () => providers.effective.unform() );
   return providers.effective.ready;
@@ -1449,7 +1448,6 @@ function filesReflectFromHdToImapSingle( test )
   + '\r\n';
   var srcPath = a.abs( '<1>' );
   providers.hd.fileWrite( srcPath, src );
-  debugger;
   providers.system.filesReflect
   ({
     reflectMap : { [ srcPath ] : '/dst/<$>' },

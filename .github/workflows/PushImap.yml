@@ -35,7 +35,7 @@ jobs :
     - run : wget https://raw.githubusercontent.com/tomav/docker-mailserver/master/mailserver.env
     - run : curl -o .env https://raw.githubusercontent.com/tomav/docker-mailserver/master/compose.env
     - run : docker-compose up -d mail
-    - run : docker exec mail addmailuser user@domain password
+    - run : docker exec mail addmailuser user@domain.com password
     - name : ${{ matrix.node-version }}
       uses : actions/setup-node@v1
       with :

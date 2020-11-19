@@ -43,7 +43,7 @@ function providerMake()
 
   let defaultCredentials =
   {
-    login : 'user@domain',
+    login : 'user@domain.com',
     password : 'password',
     hostUri : '127.0.0.1:143',
     tls : false,

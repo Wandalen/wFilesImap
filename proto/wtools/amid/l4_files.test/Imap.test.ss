@@ -78,7 +78,7 @@ function login( test )
   let context = this;
   let providers = context.providerMake();
   providers.effective.ready.then( () => providers.effective.unform() );
-  providers.effective.ready.then( () => test.is( true ) );
+  providers.effective.ready.then( () => test.true( true ) );
   return providers.effective.ready;
 }
 
@@ -95,7 +95,7 @@ function dirRead( test )
   providers.effective.dirMake( '/read' );
   var got = providers.effective.dirRead( '/' );
   var exp = [ 'Drafts', 'INBOX', 'Junk', 'Sent', 'Trash', 'read' ];
-  test.is( _.longHasAll( got, exp ) );
+  test.true( _.longHasAll( got, exp ) );
 
   /* */
 
@@ -105,7 +105,7 @@ function dirRead( test )
   providers.effective.fileWrite( '/read/<$>', 'data' );
   var exp = [ '1-new', '2-contacted', '<1>' ];
   var got = providers.effective.dirRead( '/read' );
-  test.is( _.longHasAll( got, exp ) );
+  test.true( _.longHasAll( got, exp ) );
 
   /* */
 
@@ -261,8 +261,8 @@ data of text file
   var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'map' });
   var exp = [ 'attributes', 'parts', 'seqNo', 'header', 'attachments' ];
   test.identical( _.mapKeys( got ), exp );
-  test.is( !( 'struct' in got.attributes ) );
-  test.is( 'uid' in got.attributes );
+  test.true( !( 'struct' in got.attributes ) );
+  test.true( 'uid' in got.attributes );
   providers.effective.filesDelete( '/read' );
 
   /* */
@@ -781,13 +781,13 @@ function fileWrite( test )
   providers.effective.dirMake( '/write' );
   providers.effective.fileWrite( '/write/<$>', 'data' );
   var got = providers.effective.dirRead( '/write' );
-  test.is( _.longHas( got, '<1>' ) );
+  test.true( _.longHas( got, '<1>' ) );
   providers.effective.filesDelete( '/write' );
 
   test.case = 'write file in not existed directory';
   providers.effective.fileWrite( '/write/<$>', 'data' );
   var got = providers.effective.dirRead( '/write' );
-  test.is( _.longHas( got, '<1>' ) );
+  test.true( _.longHas( got, '<1>' ) );
   providers.effective.filesDelete( '/write' );
 
   test.case = 'write file with flags, string';
@@ -875,11 +875,11 @@ function fileDelete( test )
   test.case = 'delete single file';
   providers.effective.fileWrite( '/delete/<$>', 'data' );
   var got = providers.effective.dirRead( '/delete' );
-  test.is( _.longHas( got, '<1>' ) );
+  test.true( _.longHas( got, '<1>' ) );
 
   providers.effective.fileDelete( '/delete/<1>' );
   var got = providers.effective.dirRead( '/delete' );
-  test.isNot( _.longHas( got, '<1>' ) );
+  test.false( _.longHas( got, '<1>' ) );
 
   /* */
 
@@ -890,7 +890,7 @@ function fileDelete( test )
 
   providers.effective.fileDelete( '/delete' );
   var got = providers.effective.dirRead( '/' );
-  test.isNot( _.longHas( got, 'delete' ) );
+  test.false( _.longHas( got, 'delete' ) );
 
   /* */
 
@@ -901,7 +901,7 @@ function fileDelete( test )
 
   providers.effective.fileDelete( '/delete' );
   var got = providers.effective.dirRead( '/' );
-  test.isNot( _.longHas( got, 'delete' ) );
+  test.false( _.longHas( got, 'delete' ) );
 
   /* */
 
@@ -938,7 +938,7 @@ function fileDelete( test )
 
   providers.effective.fileDelete( '/delete' );
   var got = providers.effective.dirRead( '/' );
-  test.isNot( _.longHas( got, 'delete' ) );
+  test.false( _.longHas( got, 'delete' ) );
 
   /* */
 
@@ -977,11 +977,11 @@ function filesDelete( test )
   providers.effective.dirMake( '/delete2' );
   providers.effective.dirMake( '/delete3' );
   var got = providers.effective.dirRead( '/' );
-  test.is( _.longHasAll( got, [ 'delete1', 'delete2', 'delete3' ] ) );
+  test.true( _.longHasAll( got, [ 'delete1', 'delete2', 'delete3' ] ) );
 
   providers.effective.filesDelete({ filePath : [ '/delete1', '/delete3' ] });
   var got = providers.effective.dirRead( '/' );
-  test.is( _.longHas( got, 'delete2' ) );
+  test.true( _.longHas( got, 'delete2' ) );
   providers.effective.fileDelete( '/delete2' );
 
   /* */
@@ -1012,7 +1012,7 @@ function filesDelete( test )
   var got = providers.effective.dirRead( '/delete' );
   test.identical( got, [ '2' ] );
   var got = providers.effective.dirRead( '/' );
-  test.isNot( _.longHas( got, 'delete2' ) );
+  test.false( _.longHas( got, 'delete2' ) );
   providers.effective.fileDelete( '/delete' );
 
   /* */
@@ -1033,20 +1033,20 @@ function dirMake( test )
   test.case = 'create new directory';
   providers.effective.dirMake( '/make' );
   var got = providers.effective.dirRead( '/' );
-  test.is( _.longHas( got, 'make' ) );
+  test.true( _.longHas( got, 'make' ) );
   providers.effective.fileDelete( '/make' );
 
   test.case = 'try to recreate existed directory';
   providers.effective.fileWrite( '/make/<$>', 'data' );
   providers.effective.dirMake( '/make' );
   var got = providers.effective.dirRead( '/make' );
-  test.is( _.longHas( got, '<1>' ) );
+  test.true( _.longHas( got, '<1>' ) );
   providers.effective.fileDelete( '/make' );
 
   test.case = 'create nested directory';
   providers.effective.dirMake( '/make/some' );
   var got = providers.effective.dirRead( '/' );
-  test.is( _.longHas( got, 'make' ) );
+  test.true( _.longHas( got, 'make' ) );
   var got = providers.effective.dirRead( '/make' );
   test.identical( got, [ 'some' ] );
   providers.effective.fileDelete( '/make' );
@@ -1072,12 +1072,12 @@ function fileRename( test )
   test.case = 'rename directory in root level';
   providers.effective.dirMake( '/toRename' );
   var got = providers.effective.dirRead( '/' );
-  test.is( _.longHas( got, 'toRename' ) );
+  test.true( _.longHas( got, 'toRename' ) );
 
   providers.effective.fileRename( '/rename', '/toRename' );
   var got = providers.effective.dirRead( '/' );
-  test.is( _.longHas( got, 'rename' ) );
-  test.isNot( _.longHas( got, 'toRename' ) );
+  test.true( _.longHas( got, 'rename' ) );
+  test.false( _.longHas( got, 'toRename' ) );
   providers.effective.fileDelete( '/rename' );
 
   /* */
@@ -1217,7 +1217,7 @@ function fileCopy( test )
 
   test.case = 'copy file into not existed directory, makingDirectory - 1';
   var got = providers.effective.dirRead( '/' );
-  test.isNot( _.longHas( got, 'dst' ) );
+  test.false( _.longHas( got, 'dst' ) );
 
   providers.effective.fileCopy({ dstPath : '/dst/<$>', srcPath : '/src/<1>', makingDirectory : 1 });
   var got = providers.effective.dirRead( '/dst' );

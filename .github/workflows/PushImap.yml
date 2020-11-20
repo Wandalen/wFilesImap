@@ -31,11 +31,11 @@ jobs :
     - run : git config --global user.email "testing@testing.com"
     - run : git config --global user.name "Testing"
     - uses : actions/checkout@v2
-    - run : curl -o docker-compose.yml https://raw.githubusercontent.com/tomav/docker-mailserver/master/docker-compose.yml.dist
-    - run : curl -o .env https://raw.githubusercontent.com/tomav/docker-mailserver/master/.env.dist
-    - run : curl -o env-mailserver https://raw.githubusercontent.com/tomav/docker-mailserver/master/env-mailserver.dist
+    - run : wget https://raw.githubusercontent.com/tomav/docker-mailserver/master/docker-compose.yml
+    - run : wget https://raw.githubusercontent.com/tomav/docker-mailserver/master/mailserver.env
+    - run : curl -o .env https://raw.githubusercontent.com/tomav/docker-mailserver/master/compose.env
     - run : docker-compose up -d mail
-    - run : docker exec mail addmailuser user@domain password
+    - run : docker exec mail addmailuser user@domain.com password
     - name : ${{ matrix.node-version }}
       uses : actions/setup-node@v1
       with :

@@ -43,7 +43,7 @@ function providerMake()
 
   let defaultCredentials =
   {
-    login : 'user@domain',
+    login : 'user@domain.com',
     password : 'password',
     hostUri : '127.0.0.1:143',
     tls : false,
@@ -325,13 +325,13 @@ data of text file
   providers.effective.fileWrite( '/read/<$>', data );
   var advanced = { withHeader : 0 };
   var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'utf8' });
-  var str = `"body" : "--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit`
+  var body = `"body" : "--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit`
   + `\\r\\n\\r\\nsome text\\r\\n\\r\\n--__boundary__\\r\\n--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8`
   + `\\r\\nContent-Transfer-Encoding: 7bit\\r\\nContent-Disposition: attachment; filename=File.txt\\r\\n\\r\\ndata of text file`
-  + `\\r\\n--__boundary__--\\r\\n",`;
+  + `\\r\\n--__boundary__--\\r\\n"`;
   var exp =
 `{
-${ str }
+${ body },
 "attachments" : [
 {
 "fileName" : "File.txt",
@@ -424,7 +424,7 @@ data of text file
   providers.effective.fileWrite( '/read/<$>', data );
   var advanced = { withTail : 0 };
   var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'utf8' });
-  var str = `"body" : "--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit`
+  var body = `"body" : "--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\nContent-Transfer-Encoding: 7bit`
   + `\\r\\n\\r\\nsome text\\r\\n\\r\\n--__boundary__\\r\\n--__boundary__\\r\\nContent-Type: text/plain; charset=UTF-8`
   + `\\r\\nContent-Transfer-Encoding: 7bit\\r\\nContent-Disposition: attachment; filename=File.txt\\r\\n\\r\\ndata of text file`
   + `\\r\\n--__boundary__--\\r\\n"`;
@@ -440,7 +440,7 @@ data of text file
 "multipart/alternate; boundary=__boundary__"
 ]
 },
-${ str }
+${ body }
 }`;
   test.equivalent( got, exp );
   providers.effective.filesDelete( '/read' );
@@ -1129,59 +1129,6 @@ function fileRename( test )
 
 //
 
-function areHardLinked( test )
-{
-  let context = this;
-  let providers = context.providerMake();
-
-  providers.effective.fileWrite( '/link1/<$>', 'data' );
-  providers.effective.fileWrite( '/link2/<$>', 'data' );
-
-  /* */
-
-  test.case = 'two different paths, paths exist';
-  var got = providers.effective.areHardLinked([ '/link1', '/link2' ]);
-  test.identical( got, false );
-
-  test.case = 'two different paths, paths exist';
-  var got = providers.effective.areHardLinked([ '/link1/<1>', '/link2/<1>' ]);
-  test.identical( got, false );
-
-  test.case = 'two different paths, first path does not exist';
-  var got = providers.effective.areHardLinked([ '/link3', '/link2' ]);
-  test.identical( got, false );
-
-  test.case = 'two different paths, second path does not exist';
-  var got = providers.effective.areHardLinked([ '/link1', '/link3' ]);
-  test.identical( got, false );
-
-  test.case = 'two identical paths, paths exist';
-  var got = providers.effective.areHardLinked([ '/link1', '/link1' ]);
-  test.identical( got, true );
-
-  test.case = 'two identical paths, paths exist';
-  var got = providers.effective.areHardLinked([ '/link1/<1>', '/link1/<1>' ]);
-  test.identical( got, true );
-
-  test.case = 'two identical paths, paths do not exist';
-  var got = providers.effective.areHardLinked([ '/link3', '/link3' ]);
-  test.identical( got, true );
-
-  test.case = 'two identical paths, paths do not exist';
-  var got = providers.effective.areHardLinked([ '/link3/<1>', '/link3/<1>' ]);
-  test.identical( got, true );
-
-  /* */
-
-  providers.effective.fileDelete( '/link1' );
-  providers.effective.fileDelete( '/link2' );
-
-  providers.effective.ready.finally( () => providers.effective.unform() );
-  return providers.effective.ready;
-}
-
-//
-
 function fileCopy( test )
 {
   let context = this;
@@ -1235,6 +1182,59 @@ function fileCopy( test )
   /* */
 
   providers.effective.fileDelete( '/src' );
+
+  providers.effective.ready.finally( () => providers.effective.unform() );
+  return providers.effective.ready;
+}
+
+//
+
+function areHardLinked( test )
+{
+  let context = this;
+  let providers = context.providerMake();
+
+  providers.effective.fileWrite( '/link1/<$>', 'data' );
+  providers.effective.fileWrite( '/link2/<$>', 'data' );
+
+  /* */
+
+  test.case = 'two different paths, paths exist';
+  var got = providers.effective.areHardLinked([ '/link1', '/link2' ]);
+  test.identical( got, false );
+
+  test.case = 'two different paths, paths exist';
+  var got = providers.effective.areHardLinked([ '/link1/<1>', '/link2/<1>' ]);
+  test.identical( got, false );
+
+  test.case = 'two different paths, first path does not exist';
+  var got = providers.effective.areHardLinked([ '/link3', '/link2' ]);
+  test.identical( got, false );
+
+  test.case = 'two different paths, second path does not exist';
+  var got = providers.effective.areHardLinked([ '/link1', '/link3' ]);
+  test.identical( got, false );
+
+  test.case = 'two identical paths, paths exist';
+  var got = providers.effective.areHardLinked([ '/link1', '/link1' ]);
+  test.identical( got, true );
+
+  test.case = 'two identical paths, paths exist';
+  var got = providers.effective.areHardLinked([ '/link1/<1>', '/link1/<1>' ]);
+  test.identical( got, true );
+
+  test.case = 'two identical paths, paths do not exist';
+  var got = providers.effective.areHardLinked([ '/link3', '/link3' ]);
+  test.identical( got, true );
+
+  test.case = 'two identical paths, paths do not exist';
+  var got = providers.effective.areHardLinked([ '/link3/<1>', '/link3/<1>' ]);
+  test.identical( got, true );
+
+  /* */
+
+  providers.effective.fileDelete( '/link1' );
+  providers.effective.fileDelete( '/link2' );
 
   providers.effective.ready.finally( () => providers.effective.unform() );
   return providers.effective.ready;
@@ -1448,7 +1448,6 @@ function filesReflectFromHdToImapSingle( test )
   + '\r\n';
   var srcPath = a.abs( '<1>' );
   providers.hd.fileWrite( srcPath, src );
-  debugger;
   providers.system.filesReflect
   ({
     reflectMap : { [ srcPath ] : '/dst/<$>' },

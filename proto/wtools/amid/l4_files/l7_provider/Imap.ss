@@ -411,51 +411,60 @@ function attachmentsGet( o )
     if( !self.fileExists( o.filePath ) )
     return ready.take( null );
 
-    return ready.give( function()
-    {
-      let con = this;
-
-      self._connection.openBox( mailbox )
-      .then( ( extra ) =>
-      {
-        let searchCriteria = [ `${ parsed.stripName }` ];
-        let bodies = [ '' ];
-
-        let fetchOptions =
-        {
-          bodies,
-          struct : true,
-          markSeen : false,
-        };
-
-        return self._connection.search( searchCriteria, fetchOptions )
-        .then( ( messages ) =>
-        {
-          _.assert( messages.length === 1, 'Expects single message.' );
-
-          let message = messages[ 0 ];
-          result = _.filter_( null, message.attributes.struct, ( e ) =>
-          {
-            if( _.arrayIs( e ) )
-            e = e[ 0 ];
-            if( e.disposition && e.disposition.type )
-            if( _.longHasAny( [ 'INLINE', 'ATTACHMENT' ], e.disposition.type.toUpperCase() ) )
-            return e;
-          });
-
-          /* */
-
-          let con2 = replacePartsByAttachments( result, message );
-          con.take( con2 );
-
-        })
-      })
-
-    })
+    return ready.give( attachmentGetFromBox )
     .then( () =>
     {
       self._connection.closeBox( mailbox );
       return null;
+    });
+  }
+
+  /* */
+
+  function attachmentGetFromBox()
+  {
+    let con = this;
+
+    self._connection.openBox( mailbox )
+    .then( ( extra ) =>
+    {
+      let searchCriteria = [ `${ parsed.stripName }` ];
+      let bodies = [ '' ];
+
+      let fetchOptions =
+      {
+        bodies,
+        struct : true,
+        markSeen : false,
+      };
+
+      return self._connection.search( searchCriteria, fetchOptions )
+      .then( ( messages ) =>
+      {
+        _.assert( messages.length === 1, 'Expects single message.' );
+
+        let message = messages[ 0 ];
+        result = messageStructFilter( message.attributes.struct );
+
+        /* */
+
+        let con2 = replacePartsByAttachments( result, message );
+        con.take( con2 );
+      })
+    });
+  }
+
+  /* */
+
+  function messageStructFilter( msgs )
+  {
+    return _.filter_( null, msgs, ( e ) =>
+    {
+      if( _.arrayIs( e ) )
+      e = e[ 0 ];
+      if( e.disposition && e.disposition.type )
+      if( _.longHasAny( [ 'INLINE', 'ATTACHMENT' ], e.disposition.type.toUpperCase() ) )
+      return e;
     });
   }
 
@@ -579,16 +588,23 @@ function dirReadAct( o )
       };
       return self._connection.search( searchCriteria, fetchOptions ).then( function( messages )
       {
-        messages.forEach( function( message, k )
-        {
-          let mid = message.attributes.uid;
-          _.assert( _.numberIs( mid ) );
-          _.arrayAppendOnceStrictly( result, '<' + String( mid ) + '>' );
-        });
+        messageEachCheckAndAppend( messages );
         self._connection.closeBox( filePath );
       });
     });
 
+  }
+
+  /* */
+
+  function messageEachCheckAndAppend( messages )
+  {
+    messages.forEach( function( message, k )
+    {
+      let mid = message.attributes.uid;
+      _.assert( _.numberIs( mid ) );
+      _.arrayAppendOnceStrictly( result, '<' + String( mid ) + '>' );
+    });
   }
 
   /* */

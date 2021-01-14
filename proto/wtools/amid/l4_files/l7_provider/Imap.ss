@@ -386,6 +386,7 @@ function attachmentsGet( o )
 
   let parsed = self.pathParse( o.filePath );
   parsed.dirPath = path.unabsolute( parsed.dirPath );
+  let mailbox = self._pathDirNormalize( parsed.dirPath );
 
   if( !parsed.isTerminal )
   throw _.err( `${ o.filePath } is not a terminal` );
@@ -406,7 +407,6 @@ function attachmentsGet( o )
   function _attachmentsGet()
   {
     let ready = self.ready.split();
-    let mailbox = self._pathDirNormalize( parsed.dirPath );
 
     if( !self.fileExists( o.filePath ) )
     return ready.take( null );

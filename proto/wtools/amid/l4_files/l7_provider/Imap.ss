@@ -80,11 +80,12 @@ function form()
     }
   };
 
-  debugger;
   let error = null;
   for( let i = 0 ; i < self.authRetryLimit ; i++ )
   {
-    let provider = connect().deasync().sync();
+    let provider = connect()
+    .deasync()
+    .sync();
     if( provider )
     return provider;
   }

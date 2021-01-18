@@ -94,26 +94,29 @@ function loginRetryOnFail( test )
     tls : false,
   };
 
+  test.case = 'default number of attempts';
+  var begin = _.time.now();
+  test.shouldThrowErrorSync( () => _.FileProvider.Imap( credentials ) );
+  var spent = ( _.time.now() - begin ) / 1000;
+  test.ge( spent, 5 );
+
+  test.case = 'not default number of attempts';
   var errCallback = ( err, arg ) =>
   {
     test.identical( arg, undefined );
     test.true( _.errIs( err ) );
+    console.log( err.message );
     test.identical( _.strCount( err.message, '= Message of error' ), 1 );
     test.identical( _.strCount( err.message, 'Authentication failed' ), 1 );
     test.identical( _.strCount( err.message, 'textCode : \'AUTHENTICATIONFAILED\'' ), 1 );
     test.identical( _.strCount( err.message, 'source : \'authentication\' Cannot connect to server' ), 1 );
     return null;
   };
-
-  test.case = 'default number of attempts';
   var begin = _.time.now();
-  test.shouldThrowErrorSync( () => _.FileProvider.Imap( credentials ), errCallback );
-  var spent = ( _.time.now() - begin ) / 1000;
-  test.ge( spent, 5 );
-
-  test.case = 'not default number of attempts';
-  var begin = _.time.now();
-  test.shouldThrowErrorSync( () => _.FileProvider.Imap( _.mapExtend( null, credentials, { authRetryLimit : 6 } ) ), errCallback );
+  test.shouldThrowErrorSync( () =>
+  {
+    _.FileProvider.Imap( _.mapExtend( null, credentials, { authRetryLimit : 6, authTimeOut : 10000 } ) );
+  }, errCallback );
   var spent = ( _.time.now() - begin ) / 1000;
   test.ge( spent, 10 );
 }

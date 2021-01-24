@@ -8,7 +8,7 @@ Implements file provider to access file over IMAP protocol.
 git clone https://github.com/Wandalen/wFilesImap
 cd wFilesImap
 npm install
-node sample/Sample.s
+node sample/trivial/Sample.s
 ```
 
 ## To add to your project

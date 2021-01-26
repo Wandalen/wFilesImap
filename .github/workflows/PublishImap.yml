@@ -20,8 +20,8 @@ jobs :
     - run : git config --global user.email "testing@testing.com"
     - run : git config --global user.name "Testing"
     - uses : actions/checkout@v2
-    - run : wget https://raw.githubusercontent.com/tomav/docker-mailserver/master/docker-compose.yml
-    - run : wget https://raw.githubusercontent.com/tomav/docker-mailserver/master/mailserver.env
+    - run : wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master/docker-compose.yml
+    - run : wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master/mailserver.env
     - run : wget -O .env https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env
     - run : docker-compose up -d mailserver
     - run : docker exec mail addmailuser user@domain.com password

@@ -49,6 +49,15 @@ function production( test )
   let a = test.assetFor( 'production' );
   let runList = [];
 
+  if( process.env.GITHUB_EVENT_NAME === 'pull_request' )
+  {
+    test.true( true );
+    return;
+  }
+
+  console.log( `Event : ${process.env.GITHUB_EVENT_NAME}` );
+  console.log( `Env :\n${_.toStr( process.env )}` );
+
   /* */
 
   let sampleDir = a.abs( __dirname, '../sample/trivial' );
@@ -66,9 +75,38 @@ function production( test )
   a.fileProvider.filesReflect({ reflectMap : { [ sampleDir ] : a.abs( 'sample/trivial' ) } });
   let mdlPath = a.abs( __dirname, '../package.json' );
   let mdl = a.fileProvider.fileRead({ filePath : mdlPath, encoding : 'json' });
-  let version = _.npm.versionRemoteRetrive( `npm:///${ mdl.name }!alpha` ) === '' ? 'latest' : 'alpha';
-  let data = { dependencies : { [ mdl.name ] : version } };
-  a.fileProvider.fileWrite({ filePath : a.abs( 'package.json' ), data, encoding : 'json' });
+
+  let version;
+  let remotePath = null;
+  let localPath = null;
+
+  if( _.git.insideRepository( _.path.join( __dirname, '..' ) ) )
+  {
+    remotePath = _.git.remotePathFromLocal( _.path.join( __dirname, '..' ) );
+    localPath = _.git.localPathFromInside( _.path.join( __dirname, '..' ) );
+  }
+
+  debugger;
+  let remotePathParsed1, remotePathParsed2;
+  if( remotePath )
+  {
+    remotePathParsed1 = _.git.pathParse( remotePath );
+    remotePathParsed2 = _.uri.parseFull( remotePath );
+    /* qqq : should be no 2 parse */
+  }
+
+  // if( mdl.repository.url === remotePath.full || remotePath === null )
+  // version = _.npm.versionRemoteRetrive( `npm:///${ mdl.name }!alpha` ) === '' ? 'latest' : 'alpha';
+  // else
+  version = remotePathParsed1.remoteVcsLongerPath;
+
+  if( !version )
+  throw _.err( 'Cannot obtain version to install' );
+
+  let structure = { dependencies : { [ mdl.name ] : version } };
+  a.fileProvider.fileWrite({ filePath : a.abs( 'package.json' ), data : structure, encoding : 'json' });
+  let data = a.fileProvider.fileRead({ filePath : a.abs( 'package.json' ) });
+  console.log( data );
 
   /* */
 
@@ -86,6 +124,8 @@ function production( test )
   /* */
 
   return a.ready;
+
+  /* */
 
   function run( name )
   {
@@ -237,6 +277,10 @@ function eslint( test )
       '--ignore-pattern', '*.tgs',
       '--ignore-pattern', '*.bat',
       '--ignore-pattern', '*.sh',
+      '--ignore-pattern', '*.jslike',
+      '--ignore-pattern', '*.less',
+      '--ignore-pattern', '*.hbs',
+      '--ignore-pattern', '*.noeslint',
       '--quiet'
     ],
     throwingExitCode : 0,

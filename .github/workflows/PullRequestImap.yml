@@ -36,6 +36,7 @@ jobs :
     - run : wget -O .env https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env
     - run : docker-compose up -d mailserver
     - run : docker exec mail addmailuser user@domain.com password
+    - run : docker-compose restart
     - name : ${{ matrix.node-version }}
       uses : actions/setup-node@v1
       with :

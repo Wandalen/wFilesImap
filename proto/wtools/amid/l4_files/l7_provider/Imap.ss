@@ -1269,7 +1269,7 @@ function _fileCopyPrepare( o )
       o.options.context.srcResolvedStat.size = o.options.context.srcStat.size = o.data.length;
     }
   }
-  else if( !( o.srcProvider instanceof _.FileProvider.Imap ) )
+  else if( o.srcProvider && !( o.srcProvider instanceof _.FileProvider.Imap ) )
   {
     _.assert( !o.dstProvider || o.dstProvider instanceof _.FileProvider.Imap, 'Expects provider Imap {-o.dstProvider-}.' );
 

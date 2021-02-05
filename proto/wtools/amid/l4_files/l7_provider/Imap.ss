@@ -1270,10 +1270,9 @@ function _fileCopyPrepare( o )
     }
   }
   // else if( !( o.srcProvider instanceof _.FileProvider.Imap ) )
-  else if( o.dstProvider instanceof _.FileProvider.Imap || !o.dstProvider )
+  else if( o.srcProvider instanceof _.FileProvider.Abstract )
   {
-    _.assert( !( o.srcProvider instanceof _.FileProvider.Imap ), 'Expects no Imap source provider {-o.srcProvider-}.' );
-    // _.assert( !o.dstProvider || o.dstProvider instanceof _.FileProvider.Imap, 'Expects provider Imap {-o.dstProvider-}.' );
+    _.assert( !o.dstProvider || o.dstProvider instanceof _.FileProvider.Imap, 'Expects provider Imap {-o.dstProvider-}.' );
 
     let parsed = self.pathParse( o.options.srcPath );
     if( !parsed.isTerminal )
@@ -1284,8 +1283,7 @@ function _fileCopyPrepare( o )
   }
   else
   {
-    _.assert( 0, 'Unknown instances of file providers {-o.srcProvider-} and {-o.dstProvider-}.' );
-    // _.assert( 0, 'Unknown instance of file provider {-o.srcProvider-}.' );
+    _.assert( 0, 'Unknown instance of file provider {-o.srcProvider-}.' );
   }
 
   return o.data;

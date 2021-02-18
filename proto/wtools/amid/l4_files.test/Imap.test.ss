@@ -23,7 +23,7 @@ let _ = _global_.wTools;
 function onSuiteBegin( test )
 {
   let context = this;
-  context.suiteTempPath = _.fileProvider.path.tempOpen( _.fileProvider.path.join( __dirname, '../..'  ), 'FileProviderImap' );
+  context.suiteTempPath = _.fileProvider.path.tempOpen( _.fileProvider.path.join( __dirname, '../..' ), 'FileProviderImap' );
   context.assetsOriginalPath = _.path.join( __dirname, '_asset' );
 }
 

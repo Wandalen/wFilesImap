@@ -1,6 +1,6 @@
 {
   "name": "wfilesimap",
-  "version": "0.2.75",
+  "version": "0.2.76",
   "description": "Implements file provider to access file over IMAP protocol",
   "author": "Kostiantyn Wandalen <wanalen@01.school>",
   "license": "MIT",
@@ -22,14 +22,14 @@
   },
   "dependencies": {
     "imap-simple": "=5.0.0",
-    "wTools": "gamma",
-    "wFiles": "gamma",
-    "wcensorbasic": "gamma",
-    "wresolver": "gamma"
+    "wTools": "delta",
+    "wFiles": "delta",
+    "wcensorbasic": "delta",
+    "wresolver": "delta"
   },
   "devDependencies": {
     "eslint": "7.1.0",
-    "wTesting": "gamma",
+    "wTesting": "delta",
     "wfilesimap": "file:."
   },
   "keywords": [

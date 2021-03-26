@@ -2016,7 +2016,7 @@ function filesReflectFromExtractToImapMultiple( test )
 // declare
 // --
 
-var Proto =
+const Proto =
 {
 
   name : 'Tools.mid.files.fileProvider.Imap',

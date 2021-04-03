@@ -4,7 +4,7 @@
   "description" : "Implements file provider to access file over IMAP protocol",
   "author" : "Kostiantyn Wandalen <wanalen@01.school>",
   "license" : "MIT",
-  "main" : "proto/wtools/amid/l4_files/entry/Imap.ss",
+  "main" : "/pro/module/wFilesImap/proto/node_modules/wfilesimap",
   "files" : [ "proto/wtools/amid/l4_files", "proto/wtools/Tools.s", "proto/node_modules" ],
   "scripts" : { "test" : "wtest .run proto rapidity:-3", "docgen" : "wdocgen .build proto" },
   "repository" :

@@ -86,8 +86,8 @@ path:
       raw: compiled
       content: prime
   npm.proto.entry:
-    - /pro/module/wFilesImap/proto/wtools/amid/l4_files/entry/Imap.ss
-    - /pro/module/wFilesImap/proto/node_modules/wfilesimap
+    - proto/wtools/amid/l4_files/entry/Imap.ss
+    - proto/node_modules/wfilesimap
 reflector:
   reflect.proto:
     inherit: predefined.*

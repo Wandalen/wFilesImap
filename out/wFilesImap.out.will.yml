@@ -1537,6 +1537,4 @@ module:
       ../.im.will.yml:
         hash: 489b19c61525a146ac33362283c18b2b
         size: 5162
-      wFilesImap.out.will.yml:
-        hash: 6511e12fa51cb1230f618d513ea93cb2
-        size: 39506
+      wFilesImap.out.will.yml: *ref_0

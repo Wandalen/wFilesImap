@@ -2019,7 +2019,7 @@ function filesReflectFromExtractToImapMultiple( test )
 const Proto =
 {
 
-  name : 'Tools.mid.files.fileProvider.Imap',
+  name : 'Tools.files.fileProvider.Imap',
   silencing : 1,
   enabled : 0,
   routineTimeOut : 60000,

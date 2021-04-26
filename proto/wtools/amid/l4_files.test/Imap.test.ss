@@ -115,7 +115,7 @@ function loginRetryOnFail( test )
   var begin = _.time.now();
   test.shouldThrowErrorSync( () =>
   {
-    _.FileProvider.Imap( _.mapExtend( null, credentials, { authRetryLimit : 6, authTimeOut : 10000 } ) );
+    _.FileProvider.Imap( _.props.extend( null, credentials, { authRetryLimit : 6, authTimeOut : 10000 } ) );
   }, errCallback );
   var spent = ( _.time.now() - begin ) / 1000;
   test.ge( spent, 10 );
@@ -212,7 +212,7 @@ data of text file
   providers.effective.fileWrite( '/read/<$>', data );
   var got = providers.effective.fileRead({ filePath : '/read/<1>', encoding : 'map' });
   var exp = [ 'attributes', 'parts', 'seqNo', 'header', 'attachments' ];
-  test.identical( _.mapKeys( got ), exp );
+  test.identical( _.props.keys( got ), exp );
   providers.effective.filesDelete( '/read' );
 
   test.case = 'read existed file, encoding - utf8';
@@ -299,7 +299,7 @@ data of text file
   var advanced = { structing : 0 };
   var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'map' });
   var exp = [ 'attributes', 'parts', 'seqNo', 'header', 'attachments' ];
-  test.identical( _.mapKeys( got ), exp );
+  test.identical( _.props.keys( got ), exp );
   test.true( !( 'struct' in got.attributes ) );
   test.true( 'uid' in got.attributes );
   providers.effective.filesDelete( '/read' );
@@ -333,7 +333,7 @@ data of text file
   var advanced = { withHeader : 0 };
   var got = providers.effective.fileRead({ filePath : '/read/<1>', advanced, encoding : 'map' });
   var exp = [ 'attributes', 'parts', 'seqNo', 'attachments' ];
-  test.identical( _.mapKeys( got ), exp );
+  test.identical( _.props.keys( got ), exp );
   providers.effective.filesDelete( '/read' );
 
   /* */

@@ -3,15 +3,22 @@
 
 Implements file provider to access file over IMAP protocol.
 
-## Try out from the repository
+### Try out from the repository
+
 ```
 git clone https://github.com/Wandalen/wFilesImap
 cd wFilesImap
-npm install
+will .npm.install
 node sample/trivial/Sample.s
 ```
 
+Make sure you have utility `willbe` installed. To install willbe: `npm i -g willbe@stable`. Willbe is required to build of the module.
+
 ### To add to your project
+
 ```
-npm add 'wfilesimap@alpha'
+npm add 'wfilesimap@stable'
 ```
+
+`Willbe` is not required to use the module in your project as submodule.
+

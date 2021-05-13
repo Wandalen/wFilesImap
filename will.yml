@@ -1,36 +1,103 @@
-submodule:
-  wTools:
-    path: 'npm:///wTools'
-    enabled: 0
+about:
+  name: wFilesImap
+  description: Implements file provider to access file over IMAP protocol
+  version: 0.4.0
+  enabled: 1
+  license: MIT
+  npm.name: wfilesimap
+  author: Kostiantyn Wandalen <wanalen@01.school>
+  keywords:
+    - tools
+    - wTools
+  contributors:
+    - Kostiantyn Wandalen <wanalen@01.school>
+  interpreters:
+    - njs >= 10.0.0
+    - chrome >= 60.0.0
+    - firefox >= 60.0.0
+  npm.scripts:
+    test: wtest .run proto/**
+    docgen: wdocgen .build proto
+build:
+  proto.export:
     criterion:
-      external: 0
-  wFiles:
-    path: 'npm:///wFiles'
-    enabled: 0
+      content: proto
+      export: 1
+    steps:
+      - 'step::proto.export'
+  doc.export:
     criterion:
-      external: 0
-  wCensorBasic:
-    path: 'npm:///wcensorbasic'
-    enabled: 0
+      content: doc
+      export: 1
+    steps:
+      - 'step::doc.export'
+  npm.export:
     criterion:
-      external: 0
-  wResolver:
-    path: 'npm:///wresolver'
-    enabled: 0
+      content: npm
+      export: 1
+    steps:
+      - 'step::npm.publish'
+  export:
     criterion:
-      external: 0
-  imap-simple:
-    path: 'npm:///imap-simple'
-    enabled: 0
+      default: 1
+      export: 1
+    steps:
+      - 'build::proto.export'
+  debug:
     criterion:
-      external: 1
-  eslint:
-    path: 'npm:///eslint#7.1.0'
-    enabled: 0
+      default: 1
+      debug: debug
+      raw: raw
+      content: prime
+    steps:
+      - 'step::clean.out*=2'
+      - reflect.proto.*=1
+  compiled.debug:
     criterion:
-      debug: 1
-      external: 1
+      debug: debug
+      raw: compiled
+      content: prime
+    steps:
+      - 'step::clean.out*=2'
+      - transpile.proto.no.tests*=1
+      - transpile.proto.only.tests*=1
+  raw.release:
+    criterion:
+      debug: release
+      raw: raw
+      content: prime
+    steps:
+      - 'step::clean.out*=2'
+      - transpile.proto.raw
+  release:
+    criterion:
+      debug: release
+      raw: compiled
+      content: prime
+    steps:
+      - 'step::clean.out*=2'
+      - transpile.proto.no.tests*=1
+      - transpile.proto.only.tests*=1
+  npm:
+    criterion:
+      debug: debug
+      raw: raw
+      content: npm
+    steps:
+      - npm.generate.*=1
+  all:
+    steps:
+      - 'build::debug'
+      - 'build::compiled.debug'
+      - 'build::raw.release'
+      - 'build::release'
+      - 'build::npm'
 path:
+  repository: 'git+https:///github.com/Wandalen/wFilesImap.git'
+  origins:
+    - 'git+https:///github.com/Wandalen/wFilesImap.git'
+    - 'npm:///wFilesImap'
+  bugtracker: 'https:///github.com/Wandalen/wFilesImap/issues'
   in: .
   out: out
   temp: 'path::out'
@@ -146,6 +213,26 @@ reflector:
       '**.test*': 1
       'path::proto': '{path::out.*=1}/Tests.test.s'
 step:
+  proto.export:
+    inherit: module.export
+    export: 'path::export'
+    tar: 0
+    criterion:
+      content: proto
+  doc.export:
+    inherit: module.export
+    export: 'path::doc'
+    tar: 0
+    criterion:
+      content: doc
+  npm.export:
+    inherit: module.export
+    export: out.npm
+    tar: 0
+    criterion:
+      content: npm
+  npm.publish:
+    shell: npm publish
   npm.generate:
     inherit: npm.generate
     entryPath: 'path::entry.out.*=1'
@@ -196,53 +283,35 @@ step:
     criterion:
       content: prime
       debug: release
-build:
-  debug:
+submodule:
+  wTools:
+    path: 'npm:///wTools'
+    enabled: 0
     criterion:
-      default: 1
-      debug: debug
-      raw: raw
-      content: prime
-    steps:
-      - 'step::clean.out*=2'
-      - reflect.proto.*=1
-  compiled.debug:
+      external: 0
+  wFiles:
+    path: 'npm:///wFiles'
+    enabled: 0
     criterion:
-      debug: debug
-      raw: compiled
-      content: prime
-    steps:
-      - 'step::clean.out*=2'
-      - transpile.proto.no.tests*=1
-      - transpile.proto.only.tests*=1
-  raw.release:
+      external: 0
+  wcensorbasic:
+    path: 'npm:///wcensorbasic'
+    enabled: 0
     criterion:
-      debug: release
-      raw: raw
-      content: prime
-    steps:
-      - 'step::clean.out*=2'
-      - transpile.proto.raw
-  release:
+      external: 0
+  wresolver:
+    path: 'npm:///wresolver'
+    enabled: 0
     criterion:
-      debug: release
-      raw: compiled
-      content: prime
-    steps:
-      - 'step::clean.out*=2'
-      - transpile.proto.no.tests*=1
-      - transpile.proto.only.tests*=1
-  npm:
+      external: 0
+  imap-simple:
+    path: 'npm:///imap-simple'
+    enabled: 0
     criterion:
-      debug: debug
-      raw: raw
-      content: npm
-    steps:
-      - npm.generate.*=1
-  all:
-    steps:
-      - 'build::debug'
-      - 'build::compiled.debug'
-      - 'build::raw.release'
-      - 'build::release'
-      - 'build::npm'
+      external: 1
+  eslint:
+    path: 'npm:///eslint#7.1.0'
+    enabled: 0
+    criterion:
+      external: 1
+      development: 1

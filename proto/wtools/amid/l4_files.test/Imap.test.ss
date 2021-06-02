@@ -2021,7 +2021,7 @@ const Proto =
 
   name : 'Tools.files.fileProvider.Imap',
   silencing : 1,
-  enabled : 0,
+  enabled : 1,
   routineTimeOut : 60000,
 
   onSuiteBegin,

@@ -897,7 +897,9 @@ function fileWriteAct( o )
   _.routine.assertOptions( fileWriteAct, o );
   _.assert( self.path.isNormalized( o.filePath ) );
   _.assert( self.WriteMode.indexOf( o.writeMode ) !== -1 );
-  o.advanced = _.routine.options_( null, o.advanced || Object.create( null ), fileWriteAct.advanced );
+  // o.advanced = _.routine.options_( null, o.advanced || Object.create( null ), fileWriteAct.advanced );
+  o.advanced = _.map.extend( o.advanced || Object.create( null ), fileWriteAct.advanced );
+  _.map.assertHasOnly( o.advanced, fileWriteAct.advanced );
 
   /* data conversion */
 

@@ -1262,7 +1262,7 @@ function _fileCopyPrepare( o )
 
   if( o.srcProvider instanceof _.FileProvider.Imap || !o.srcProvider )
   {
-    _.assert( o.dstProvider, 'Expects destination provider {-dstProvider-}.' );
+    _.assert( !!o.dstProvider, 'Expects destination provider {-dstProvider-}.' );
 
     let numberOfLines = _.strLinesCount( read );
     if( numberOfLines === 1 )
@@ -1272,7 +1272,6 @@ function _fileCopyPrepare( o )
       o.options.context.srcResolvedStat.size = o.options.context.srcStat.size = o.data.length;
     }
   }
-  // else if( !( o.srcProvider instanceof _.FileProvider.Imap ) )
   else if( o.srcProvider instanceof _.FileProvider.Abstract )
   {
     _.assert( !o.dstProvider || o.dstProvider instanceof _.FileProvider.Imap, 'Expects provider Imap {-o.dstProvider-}.' );

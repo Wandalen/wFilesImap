@@ -106,7 +106,7 @@ function loginRetryOnFail( test )
     test.identical( arg, undefined );
     test.true( _.errIs( err ) );
     console.log( err.message );
-    test.identical( _.strCount( err.message, '= Message of error' ), 1 );
+    test.identical( _.strCount( err.message, '= Message of Error' ), 1 );
     test.identical( _.strCount( err.message, 'Authentication failed' ), 1 );
     test.identical( _.strCount( err.message, 'textCode : \'AUTHENTICATIONFAILED\'' ), 1 );
     test.identical( _.strCount( err.message, 'source : \'authentication\' Cannot connect to server' ), 1 );

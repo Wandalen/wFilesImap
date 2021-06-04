@@ -25,26 +25,17 @@ jobs :
         git config --global user.email "testing@testing.com"
         git config --global user.name "Testing"
     - uses : actions/checkout@v2
-    - name : Download docker-compose.yml
-      run : wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/e1178459ebe550ac97124fe7c0e3118f46b973cc/docker-compose.yml
-    - name : Download mailserver.env
-      run : wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master/mailserver.env
-    - name : Download compose.env
-      run : wget -O .env https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env
-    - run : docker-compose up -d mailserver
-    - run : docker exec mail addmailuser user@domain.com password
-    - run : docker-compose restart
     - name : ${{ matrix.node-version }}
       uses : actions/setup-node@v1
       with :
         node-version : ${{ matrix.node-version }}
+    - run : npm -g i willbe@stable
+    - run : will .build mailserver.setup
     - name : Setup latest npm 6
       run : npm install -g npm@latest-6
-    - run : npm -g i willbe@stable
     - run : will .npm.install
     - name : Environment
       run : env
     - run : npm list
       continue-on-error : true
-    - name : Run npm test
-      run : npm test
+    - run : npm test

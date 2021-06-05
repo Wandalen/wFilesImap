@@ -19,6 +19,12 @@ about:
     test: wtest .run proto/**
     docgen: wdocgen .build proto
 build:
+  mailserver.setup:
+    steps:
+      - mailserver.configs.setup
+      - mailserver.run
+      - mailserver.user.add
+      - mailserver.restart
   proto.export:
     criterion:
       content: proto
@@ -213,6 +219,21 @@ reflector:
       '**.test*': 1
       'path::proto': '{path::out.*=1}/Tests.test.s'
 step:
+  mailserver.configs.setup:
+    currentPath : 'out'
+    shell:
+      - 'wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/e1178459ebe550ac97124fe7c0e3118f46b973cc/docker-compose.yml'
+      - 'wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master/mailserver.env'
+      - 'wget -O .env https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env'
+  mailserver.run:
+    currentPath : 'out'
+    shell: docker-compose up -d mailserver
+  mailserver.user.add:
+    currentPath : 'out'
+    shell: docker exec mail addmailuser user@domain.com password
+  mailserver.restart:
+    currentPath : 'out'
+    shell: docker-compose restart
   proto.export:
     inherit: module.export
     export: 'path::export'

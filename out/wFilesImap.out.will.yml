@@ -3,8 +3,8 @@ root:
   - wFilesImap.out
 consistency:
   ../will.yml: &ref_0
-    hash: 2d2a983edca3b7b844c579c5cb25760f
-    size: 6649
+    hash: 795e3e98331238eb9742f3ead597c5f5
+    size: 7529
 module:
   wFilesImap.out:
     about:
@@ -362,6 +362,31 @@ module:
           content: proto
           export: 1
     step:
+      mailserver.configs.setup:
+        opts:
+          currentPath: out
+          shell:
+            - >-
+              wget
+              https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/e1178459ebe550ac97124fe7c0e3118f46b973cc/docker-compose.yml
+            - >-
+              wget
+              https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master/mailserver.env
+            - >-
+              wget -O .env
+              https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env
+      mailserver.run:
+        opts:
+          currentPath: out
+          shell: docker-compose up -d mailserver
+      mailserver.user.add:
+        opts:
+          currentPath: out
+          shell: docker exec mail addmailuser user@domain.com password
+      mailserver.restart:
+        opts:
+          currentPath: out
+          shell: docker-compose restart
       proto.export:
         opts:
           export: 'path::export'
@@ -713,6 +738,12 @@ module:
         inherit:
           - files.transpile
     build:
+      mailserver.setup:
+        steps:
+          - mailserver.configs.setup
+          - mailserver.run
+          - mailserver.user.add
+          - mailserver.restart
       proto.export:
         steps:
           - 'step::proto.export'
@@ -1064,6 +1095,31 @@ module:
         inherit:
           - predefined.*
     step:
+      mailserver.configs.setup:
+        opts:
+          currentPath: out
+          shell:
+            - >-
+              wget
+              https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/e1178459ebe550ac97124fe7c0e3118f46b973cc/docker-compose.yml
+            - >-
+              wget
+              https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master/mailserver.env
+            - >-
+              wget -O .env
+              https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env
+      mailserver.run:
+        opts:
+          currentPath: out
+          shell: docker-compose up -d mailserver
+      mailserver.user.add:
+        opts:
+          currentPath: out
+          shell: docker exec mail addmailuser user@domain.com password
+      mailserver.restart:
+        opts:
+          currentPath: out
+          shell: docker-compose restart
       proto.export:
         opts:
           export: 'path::export'
@@ -1415,6 +1471,12 @@ module:
         inherit:
           - files.transpile
     build:
+      mailserver.setup:
+        steps:
+          - mailserver.configs.setup
+          - mailserver.run
+          - mailserver.user.add
+          - mailserver.restart
       proto.export:
         steps:
           - 'step::proto.export'
@@ -1490,5 +1552,5 @@ module:
           - 'build::npm'
     consistency:
       ../will.yml:
-        hash: 2d2a983edca3b7b844c579c5cb25760f
-        size: 6649
+        hash: 795e3e98331238eb9742f3ead597c5f5
+        size: 7529

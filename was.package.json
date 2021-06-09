@@ -5,7 +5,7 @@
   "author" : "Kostiantyn Wandalen <wanalen@01.school>",
   "license" : "MIT",
   "main" : "proto/node_modules/wfilesimap",
-  "files" : [ "proto/wtools/amid/l4_files", "proto/node_modules" ],
+  "files" : [ "proto/wtools/amid/l4_files", "proto/node_modules", "proto/node_modules/Tools", "proto/node_modules/wfilesimap" ],
   "scripts" : { "test" : "wtest .run proto rapidity:-3", "docgen" : "wdocgen .build proto" },
   "repository" :
   {

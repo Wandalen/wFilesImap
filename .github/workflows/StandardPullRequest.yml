@@ -1,10 +1,10 @@
 
 name : pr
-on : [ push ]
+on : [ pull_request ]
 
 jobs :
 
-  Cancel:
+  Cancel :
     name : 'Cancel Previous Runs'
     runs-on : ubuntu-latest
     timeout-minutes : 1
@@ -23,9 +23,8 @@ jobs :
     strategy :
       fail-fast : false
       matrix :
-        os : [ ubuntu-latest ]
+        os : [ ubuntu-latest, windows-latest, macos-latest ]
         node-version : [ 14.x ]
-    if : "!startsWith( github.event.head_commit.message, 'version' ) && !startsWith( github.event.head_commit.message, '.' )"
     runs-on : ${{ matrix.os }}
     steps :
     - name : Setup git
@@ -34,17 +33,24 @@ jobs :
         git config --global user.email "testing@testing.com"
         git config --global user.name "Testing"
     - uses : actions/checkout@v2
+      with :
+        fetch-depth: 2
     - name : ${{ matrix.node-version }}
       uses : actions/setup-node@v1
       with :
         node-version : ${{ matrix.node-version }}
-    - run : npm -g i willbe@stable
-    - run : will .build mailserver.setup
-    - name : Setup latest npm 6
+    - name : Save npm version
+      id : getnpmver
+      run : |
+        echo "::set-output name=npmver::$(npm -v)"
+    - name : Update npm if current version is 6
+      if : "startsWith( steps.getnpmver.outputs.npmver, '6.' )"
       run : npm install -g npm@latest-6
+    - run : npm -g i willbe@stable
     - run : will .npm.install
     - name : Environment
       run : env
     - run : npm list
       continue-on-error : true
-    - run : npm test
+    - name : npm test
+      run : npm test

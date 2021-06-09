@@ -21,10 +21,15 @@ about:
 build:
   mailserver.setup:
     steps:
+      - mailserver.dir.make
       - mailserver.configs.setup
       - mailserver.run
       - mailserver.user.add
       - mailserver.restart
+  mailserver.down:
+    steps:
+      - mailserver.down
+      - mailserver.dir.remove
   proto.export:
     criterion:
       content: proto
@@ -219,21 +224,30 @@ reflector:
       '**.test*': 1
       'path::proto': '{path::out.*=1}/Tests.test.s'
 step:
+  mailserver.dir.make:
+    currentPath : '.'
+    shell: mkdir server
+  mailserver.dir.remove:
+    currentPath : '.'
+    shell: rm -rf server
   mailserver.configs.setup:
-    currentPath : 'out'
+    currentPath : 'server'
     shell:
       - 'wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/e1178459ebe550ac97124fe7c0e3118f46b973cc/docker-compose.yml'
       - 'wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master/mailserver.env'
       - 'wget -O .env https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env'
   mailserver.run:
-    currentPath : 'out'
-    shell: docker-compose up -d mailserver
+    currentPath : 'server'
+    shell: sudo docker-compose up -d mailserver
   mailserver.user.add:
-    currentPath : 'out'
-    shell: docker exec mail addmailuser user@domain.com password
+    currentPath : 'server'
+    shell: sudo docker exec mail addmailuser user@domain.com password
   mailserver.restart:
-    currentPath : 'out'
-    shell: docker-compose restart
+    currentPath : 'server'
+    shell: sudo docker-compose restart
+  mailserver.down:
+    currentPath : 'server'
+    shell: sudo docker-compose down
   proto.export:
     inherit: module.export
     export: 'path::export'

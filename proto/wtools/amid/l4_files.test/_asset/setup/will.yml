@@ -4,7 +4,10 @@ build:
   mailserver.setup:
     steps:
       - mailserver.dir.make
-      - mailserver.configs.setup
+      # qqq : for Dmytro : unite steps mailserver.configs.setup into single step
+      - mailserver.configs.setup.docker.compose
+      - mailserver.configs.setup.mailserver.env
+      - mailserver.configs.setup.compose.env
       - mailserver.run
       - mailserver.user.add
       - mailserver.restart
@@ -19,12 +22,15 @@ step:
   mailserver.dir.remove:
     currentPath : '.'
     shell: rm -rf server
-  mailserver.configs.setup:
+  mailserver.configs.setup.docker.compose:
     currentPath : 'server'
-    shell:
-      - 'wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/e1178459ebe550ac97124fe7c0e3118f46b973cc/docker-compose.yml'
-      - 'wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master/mailserver.env'
-      - 'wget -O .env https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env'
+    shell: 'wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/e1178459ebe550ac97124fe7c0e3118f46b973cc/docker-compose.yml'
+  mailserver.configs.setup.mailserver.env:
+    currentPath : 'server'
+    shell: 'wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master/mailserver.env'
+  mailserver.configs.setup.compose.env:
+    currentPath : 'server'
+    shell: 'wget -O .env https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env'
   mailserver.run:
     currentPath : 'server'
     shell: sudo docker-compose up -d mailserver

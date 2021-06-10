@@ -22,16 +22,46 @@ const _ = _global_.wTools;
 
 function onSuiteBegin( test )
 {
-  let context = this;
-  context.suiteTempPath = _.fileProvider.path.tempOpen( _.fileProvider.path.join( __dirname, '../..' ), 'FileProviderImap' );
-  context.assetsOriginalPath = _.path.join( __dirname, '_asset' );
+  const context = this;
+  const path = _.fileProvider.path;
+  context.suiteTempPath = path.tempOpen( path.join( __dirname, '../..' ), 'FileProviderImap' );
+  context.assetsOriginalPath = path.join( __dirname, '_asset' );
+
+  const serverDir = path.join( context.suiteTempPath, './server' );
+  _.fileProvider.dirMake( serverDir );
+  _.fileProvider.filesReflect
+  ({
+    reflectMap : { [ path.join( context.assetsOriginalPath, 'setup/will.yml' ) ]  : path.join( serverDir, 'will.yml' ) },
+  });
+  _.process.start
+  ({
+    execPath : 'will .build mailserver.setup',
+    currentPath : serverDir,
+    outputCollecting : true,
+    mode : 'shell',
+    sync : 1,
+  });
+
+  return _.take( null )
+  .delay( 10000 )
+  .deasync(); /* Dmytro : time out for restarting of mailserver */
 }
 
 //
 
 function onSuiteEnd( test )
 {
-  let context = this;
+  const context = this;
+  const serverDir = _.fileProvider.path.join( context.suiteTempPath, './server/server' );
+  _.assert( _.fileProvider.fileExists( serverDir ) );
+  _.process.start
+  ({
+    execPath : 'will .build mailserver.down',
+    currentPath : serverDir,
+    outputCollecting : true,
+    mode : 'shell',
+    sync : 1,
+  })
   _.fileProvider.path.tempClose( context.suiteTempPath );
 }
 
@@ -130,6 +160,7 @@ function dirRead( test )
 
   /* */
 
+  debugger;
   test.case = 'read root directory';
   providers.effective.dirMake( '/read' );
   var got = providers.effective.dirRead( '/' );

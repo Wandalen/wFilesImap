@@ -3,8 +3,8 @@ root:
   - wFilesImap.out
 consistency:
   ../will.yml: &ref_0
-    hash: 795e3e98331238eb9742f3ead597c5f5
-    size: 7529
+    hash: fc3ae50baf3bf2650e25d645af8861e0
+    size: 7891
 module:
   wFilesImap.out:
     about:
@@ -166,6 +166,8 @@ module:
           - ../proto/wtools/amid/l4_files.test/_asset/basic
           - ../proto/wtools/amid/l4_files.test/_asset/basic/File.txt
           - ../proto/wtools/amid/l4_files.test/_asset/basic/File.xml
+          - ../proto/wtools/amid/l4_files.test/_asset/setup
+          - ../proto/wtools/amid/l4_files.test/_asset/setup/will.yml
           - ../proto/wtools/atop
     submodule:
       wTools:
@@ -362,9 +364,17 @@ module:
           content: proto
           export: 1
     step:
+      mailserver.dir.make:
+        opts:
+          currentPath: .
+          shell: mkdir server
+      mailserver.dir.remove:
+        opts:
+          currentPath: .
+          shell: rm -rf server
       mailserver.configs.setup:
         opts:
-          currentPath: out
+          currentPath: server
           shell:
             - >-
               wget
@@ -377,16 +387,20 @@ module:
               https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env
       mailserver.run:
         opts:
-          currentPath: out
-          shell: docker-compose up -d mailserver
+          currentPath: server
+          shell: sudo docker-compose up -d mailserver
       mailserver.user.add:
         opts:
-          currentPath: out
-          shell: docker exec mail addmailuser user@domain.com password
+          currentPath: server
+          shell: sudo docker exec mail addmailuser user@domain.com password
       mailserver.restart:
         opts:
-          currentPath: out
-          shell: docker-compose restart
+          currentPath: server
+          shell: sudo docker-compose restart
+      mailserver.down:
+        opts:
+          currentPath: server
+          shell: sudo docker-compose down
       proto.export:
         opts:
           export: 'path::export'
@@ -740,10 +754,15 @@ module:
     build:
       mailserver.setup:
         steps:
+          - mailserver.dir.make
           - mailserver.configs.setup
           - mailserver.run
           - mailserver.user.add
           - mailserver.restart
+      mailserver.down:
+        steps:
+          - mailserver.down
+          - mailserver.dir.remove
       proto.export:
         steps:
           - 'step::proto.export'
@@ -1095,9 +1114,17 @@ module:
         inherit:
           - predefined.*
     step:
+      mailserver.dir.make:
+        opts:
+          currentPath: .
+          shell: mkdir server
+      mailserver.dir.remove:
+        opts:
+          currentPath: .
+          shell: rm -rf server
       mailserver.configs.setup:
         opts:
-          currentPath: out
+          currentPath: server
           shell:
             - >-
               wget
@@ -1110,16 +1137,20 @@ module:
               https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env
       mailserver.run:
         opts:
-          currentPath: out
-          shell: docker-compose up -d mailserver
+          currentPath: server
+          shell: sudo docker-compose up -d mailserver
       mailserver.user.add:
         opts:
-          currentPath: out
-          shell: docker exec mail addmailuser user@domain.com password
+          currentPath: server
+          shell: sudo docker exec mail addmailuser user@domain.com password
       mailserver.restart:
         opts:
-          currentPath: out
-          shell: docker-compose restart
+          currentPath: server
+          shell: sudo docker-compose restart
+      mailserver.down:
+        opts:
+          currentPath: server
+          shell: sudo docker-compose down
       proto.export:
         opts:
           export: 'path::export'
@@ -1473,10 +1504,15 @@ module:
     build:
       mailserver.setup:
         steps:
+          - mailserver.dir.make
           - mailserver.configs.setup
           - mailserver.run
           - mailserver.user.add
           - mailserver.restart
+      mailserver.down:
+        steps:
+          - mailserver.down
+          - mailserver.dir.remove
       proto.export:
         steps:
           - 'step::proto.export'
@@ -1552,5 +1588,5 @@ module:
           - 'build::npm'
     consistency:
       ../will.yml:
-        hash: 795e3e98331238eb9742f3ead597c5f5
-        size: 7529
+        hash: fc3ae50baf3bf2650e25d645af8861e0
+        size: 7891

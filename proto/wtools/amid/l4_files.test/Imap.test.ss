@@ -160,7 +160,6 @@ function dirRead( test )
 
   /* */
 
-  debugger;
   test.case = 'read root directory';
   providers.effective.dirMake( '/read' );
   var got = providers.effective.dirRead( '/' );
@@ -2049,14 +2048,10 @@ function filesReflectFromExtractToImapMultiple( test )
 
 const Proto =
 {
-
   name : 'Tools.files.fileProvider.Imap',
   silencing : 1,
   enabled : 1,
   routineTimeOut : 60000,
-
-  onSuiteBegin,
-  onSuiteEnd,
 
   context :
   {
@@ -2071,6 +2066,12 @@ const Proto =
       tls : 'about/email.tls',
     }
   },
+};
+
+const testExtension =
+{
+  onSuiteBegin,
+  onSuiteEnd,
 
   tests :
   {
@@ -2111,12 +2112,88 @@ const Proto =
     filesReflectFromExtractToImapMultiple,
 
   },
+};
 
-}
+const mockExtension =
+{
+  tests :
+  {
+    trivial : ( test ) => test.true( true ),
+  },
+};
+
+// const Proto =
+// {
+//
+//   name : 'Tools.files.fileProvider.Imap',
+//   silencing : 1,
+//   enabled : 1,
+//   routineTimeOut : 60000,
+//
+//   onSuiteBegin,
+//   onSuiteEnd,
+//
+//   context :
+//   {
+//     providerMake,
+//     suiteTempPath : null,
+//     assetsOriginalPath : null,
+//     cred :
+//     {
+//       login : 'about/email.login',
+//       password : 'about/email.password',
+//       hostUri : 'about/email.imap',
+//       tls : 'about/email.tls',
+//     }
+//   },
+//
+//   tests :
+//   {
+//
+//     login,
+//     loginRetryOnFail,
+//
+//     dirRead,
+//
+//     fileRead,
+//     fileReadWithOptionsAdvanced,
+//
+//     attachmentsGet,
+//     statRead,
+//     fileExists,
+//
+//     fileWrite,
+//     fileDelete,
+//     filesDelete,
+//     dirMake,
+//
+//     fileRename,
+//     fileCopy,
+//
+//     areHardLinked,
+//
+//     //
+//
+//     filesReflectFromImapToHdSingle,
+//     filesReflectFromImapToHdMultiple,
+//     filesReflectFromHdToImapSingle,
+//     filesReflectFromHdToImapMultiple,
+//     filesReflectBothSidesSingleFile,
+//
+//     filesReflectFromImapToExtractSingle,
+//     filesReflectFromImapToExtractMultiple,
+//     filesReflectFromExtractToImapSingle,
+//     filesReflectFromExtractToImapMultiple,
+//
+//   },
+//
+// }
 
 //
 
-const Self = wTestSuite( Proto )
+_.map.extend( Proto, process.platform === 'linux' ? testExtension : mockExtension );
+
+const Self = wTestSuite( Proto );
 if( typeof module !== 'undefined' && !module.parent )
 wTester.test( Self.name );
 

@@ -160,7 +160,6 @@ function dirRead( test )
 
   /* */
 
-  debugger;
   test.case = 'read root directory';
   providers.effective.dirMake( '/read' );
   var got = providers.effective.dirRead( '/' );
@@ -2192,7 +2191,7 @@ const mockExtension =
 
 //
 
-_.map.extend( Proto, _.process.platform === 'linux' ? testExtension : mockExtension );
+_.map.extend( Proto, process.platform === 'linux' ? testExtension : mockExtension );
 
 const Self = wTestSuite( Proto );
 if( typeof module !== 'undefined' && !module.parent )

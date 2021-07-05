@@ -1,29 +1,39 @@
 {
-  "name" : "wfilesimap",
-  "version" : "0.2.115",
-  "description" : "Implements file provider to access file over IMAP protocol",
-  "author" : "Kostiantyn Wandalen <wanalen@01.school>",
-  "license" : "MIT",
-  "main" : "proto/node_modules/wfilesimap",
-  "files" : [ "proto/wtools/amid/l4_files", "proto/node_modules", "proto/node_modules/Tools", "proto/node_modules/wfilesimap" ],
-  "scripts" : { "test" : "wtest .run proto rapidity:-3", "docgen" : "wdocgen .build proto" },
-  "repository" :
-  {
-    "type" : "git",
-    "url" : "https://github.com/Wandalen/wFilesImap.git"
+  "name": "wfilesimap",
+  "version": "0.2.121",
+  "description": "Implements file provider to access file over IMAP protocol",
+  "author": "Kostiantyn Wandalen <wanalen@01.school>",
+  "license": "MIT",
+  "main": "proto/node_modules/wfilesimap",
+  "files": [
+    "proto/wtools/amid/l4_files",
+    "proto/node_modules",
+    "proto/node_modules/Tools",
+    "proto/node_modules/wfilesimap"
+  ],
+  "scripts": {
+    "test": "wtest .run proto rapidity:-3",
+    "docgen": "wdocgen .build proto"
   },
-  "bugs" :
-  {
-    "url" : "https://github.com/Wandalen/wFilesImap/issues"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Wandalen/wFilesImap.git"
   },
-  "dependencies" :
-  {
-    "wTools" : "",
-    "wFiles" : "",
-    "wcensorbasic" : "",
-    "wresolver" : "",
-    "imap-simple" : "=5.0.0"
+  "bugs": {
+    "url": "https://github.com/Wandalen/wFilesImap/issues"
   },
-  "devDependencies" : { "wTesting" : "", "eslint" : "7.1.0" },
-  "keywords" : [ "wTools" ]
+  "dependencies": {
+    "wTools": "",
+    "wresolver": "",
+    "wFiles": "",
+    "wcensorbasic": "",
+    "imap-simple": "=5.0.0"
+  },
+  "devDependencies": {
+    "wTesting": "",
+    "eslint": "7.1.0"
+  },
+  "keywords": [
+    "wTools"
+  ]
 }

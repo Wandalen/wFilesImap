@@ -3,8 +3,8 @@ root:
   - wFilesImap.out
 consistency:
   ../will.yml: &ref_0
-    hash: fc3ae50baf3bf2650e25d645af8861e0
-    size: 7891
+    hash: 09a930619c5667872b0af890430ed9ce
+    size: 7780
 module:
   wFilesImap.out:
     about:
@@ -425,9 +425,6 @@ module:
           content: npm
         inherit:
           - module.export
-      npm.publish:
-        opts:
-          shell: npm publish
       npm.generate.debug.raw:
         opts:
           entryPath: 'path::entry.out.*=1'
@@ -774,12 +771,6 @@ module:
           - 'step::doc.export'
         criterion:
           content: doc
-          export: 1
-      npm.export:
-        steps:
-          - 'step::npm.publish'
-        criterion:
-          content: npm
           export: 1
       export:
         steps:
@@ -1175,9 +1166,6 @@ module:
           content: npm
         inherit:
           - module.export
-      npm.publish:
-        opts:
-          shell: npm publish
       npm.generate.debug.raw:
         opts:
           entryPath: 'path::entry.out.*=1'
@@ -1525,12 +1513,6 @@ module:
         criterion:
           content: doc
           export: 1
-      npm.export:
-        steps:
-          - 'step::npm.publish'
-        criterion:
-          content: npm
-          export: 1
       export:
         steps:
           - 'build::proto.export'
@@ -1588,5 +1570,5 @@ module:
           - 'build::npm'
     consistency:
       ../will.yml:
-        hash: fc3ae50baf3bf2650e25d645af8861e0
-        size: 7891
+        hash: 09a930619c5667872b0af890430ed9ce
+        size: 7780

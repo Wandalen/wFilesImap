@@ -42,12 +42,6 @@ build:
       export: 1
     steps:
       - 'step::doc.export'
-  npm.export:
-    criterion:
-      content: npm
-      export: 1
-    steps:
-      - 'step::npm.publish'
   export:
     criterion:
       default: 1
@@ -225,28 +219,34 @@ reflector:
       'path::proto': '{path::out.*=1}/Tests.test.s'
 step:
   mailserver.dir.make:
-    currentPath : '.'
+    currentPath: .
     shell: mkdir server
   mailserver.dir.remove:
-    currentPath : '.'
+    currentPath: .
     shell: rm -rf server
   mailserver.configs.setup:
-    currentPath : 'server'
+    currentPath: server
     shell:
-      - 'wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/e1178459ebe550ac97124fe7c0e3118f46b973cc/docker-compose.yml'
-      - 'wget https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master/mailserver.env'
-      - 'wget -O .env https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env'
+      - >-
+        wget
+        https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/e1178459ebe550ac97124fe7c0e3118f46b973cc/docker-compose.yml
+      - >-
+        wget
+        https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master/mailserver.env
+      - >-
+        wget -O .env
+        https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/ed7106b04d545be6320a6943bd4a367e8622c8d6/compose.env
   mailserver.run:
-    currentPath : 'server'
+    currentPath: server
     shell: sudo docker-compose up -d mailserver
   mailserver.user.add:
-    currentPath : 'server'
+    currentPath: server
     shell: sudo docker exec mail addmailuser user@domain.com password
   mailserver.restart:
-    currentPath : 'server'
+    currentPath: server
     shell: sudo docker-compose restart
   mailserver.down:
-    currentPath : 'server'
+    currentPath: server
     shell: sudo docker-compose down
   proto.export:
     inherit: module.export
@@ -266,8 +266,6 @@ step:
     tar: 0
     criterion:
       content: npm
-  npm.publish:
-    shell: npm publish
   npm.generate:
     inherit: npm.generate
     entryPath: 'path::entry.out.*=1'
